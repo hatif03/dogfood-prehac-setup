@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Local data
+data/
+*.sqlite
+*.log
+
+# Docker volumes (if ever bind-mounted locally)
+minio-data/
+postgres-data/
+portal.db
+*.pub
+
+.next-*/
