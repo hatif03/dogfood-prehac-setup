@@ -1,0 +1,18 @@
+Portal scalability benchmark (tests/perf/bench.py)
+portal: http://localhost:8080
+synthetic event: 2000 projects, 300 judges, 40 tracks, 6000 participants, 10000 reviews
+
+POST /v1/import (whole event, then a normalization run)       37.86 s
+
+endpoint                                               p50       p95       max       size
+GET gallery (public, all projects)                  1612ms    1998ms    1998ms      932KB
+GET event detail                                      67ms     125ms     125ms        5KB
+GET dashboard (organizer, live view)                 386ms     409ms     409ms       81KB
+GET scores (organizer, every review)                1354ms    1392ms    1392ms     5379KB
+POST normalization (fit + store a run)             14367ms   15238ms   15238ms      550KB
+GET results.csv                                     1120ms    1191ms    1191ms      139KB
+GET scores.csv                                      1588ms    1703ms    1703ms      558KB
+GET export.json (whole event)                       4507ms    5070ms    5070ms     1703KB
+GET audit/verify (recompute the hash chain)           33ms      52ms      52ms        0KB
+
+5 requests per endpoint, sequential, measured from the client.

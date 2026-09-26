@@ -1,0 +1,21 @@
+Portal concurrency checks (tests/perf/concurrency.py)
+portal: http://localhost:8080   bursts of 24 simultaneous requests   19.6s
+
+parallel team creation by one user leaves one team ... PASS
+       codes Counter({409: 23, 200: 1})
+parallel joins never exceed the team size cap ........ PASS
+       members 4, codes Counter({409: 21, 200: 3})
+parallel draft saves keep one submission per team .... PASS
+       codes Counter({200: 24})
+parallel review saves leave one review ............... PASS
+       reviews 1, codes Counter({200: 24})
+parallel ballot creation gives one ballot per voter .. PASS
+       distinct ballots 1, codes Counter({200: 19, 409: 5})
+parallel quadratic votes never overspend the budget .. PASS
+       spent 8 of 9
+tally equals the sum of concurrent ballots ........... PASS
+       tally 26, expected 26
+audit hash chain verifies after the bursts ........... PASS
+       {"ok": true, "checked": 168, "head": "0c989ccf2ab2d293a6aebad1e1d8a174d45252f8992bdb9a07909f6d79599575"}
+
+8/8 invariants hold

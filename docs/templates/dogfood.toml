@@ -1,0 +1,20 @@
+# Tiers claimed. The acceptance report is the receipt.
+# Do not set a tier true unless the official suite passed it.
+
+pitch = "Self-hosted submission and judging portal: weighted rubrics, backend isolation, documented normalization."
+
+[tiers]
+t1 = false
+t2 = false
+t3 = false
+t4 = false
+
+[bonuses]
+normalization_proof = false
+pairwise_mode = false
+threat_model = false
+api_first = false
+
+[meta]
+license = "MIT"
+stack = "fastapi-next-postgres-minio"

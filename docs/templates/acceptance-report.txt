@@ -1,0 +1,22 @@
+DOGFOOD ACCEPTANCE REPORT
+=========================
+This is a TEMPLATE. Do not commit this file at repo root as if the suite ran.
+
+Build: (git sha)
+Suite: (official version, unknown until kickoff)
+Date: (ISO-8601)
+
+T1 Core
+  T1.xx  SKIPPED  suite not released
+
+T2 Judging
+  T2.03  SKIPPED  role isolation  (example id from public brief)
+
+T3 Public
+  T3.xx  SKIPPED
+
+T4 Stretch
+  T4.xx  SKIPPED
+
+Claimed in .dogfood.toml: none
+If README and this file disagree, this file wins.
