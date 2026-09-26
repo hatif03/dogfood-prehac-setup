@@ -1,0 +1,105 @@
+# One command:  docker compose up --build
+# Portal:  http://localhost:8080   API docs: http://localhost:8080/docs   Mail: http://localhost:8025
+# Everything runs locally. After the first build no network is needed.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+      POSTGRES_DB: portal
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portal -d portal"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 20
+
+  minio:
+    # minio/minio left Docker Hub; the project publishes on quay.io. Pinned so a retag cannot break boot.
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio-minio
+    volumes:
+      - minio-data:/data
+
+  mailpit:
+    image: axllent/mailpit:v1.31.2
+    ports:
+      - "8025:8025" # inbox for judge invites and voting links
+
+  api:
+    build: ./src/api
+    environment:
+      DATABASE_URL: postgresql+psycopg://portal:portal@postgres:5432/portal
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio-minio
+      MINIO_BUCKET: portal
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      PUBLIC_URL: http://localhost:8080
+      CORS_ORIGINS: http://localhost:8080
+      TRUST_PROXY: "true"
+      SEED_ON_BOOT: "true"
+      DEMO_SESSIONS: ${DEMO_SESSIONS:-true}
+      FIXTURES_PATH: /app/fixtures.json
+      API_WORKERS: ${API_WORKERS:-4}
+      # Abuse limits. Raise them only for load tests (see tests/perf/README.md).
+      LOGIN_RATE_LIMIT: ${LOGIN_RATE_LIMIT:-10}
+      VOTE_RATE_LIMIT: ${VOTE_RATE_LIMIT:-30}
+      COMMENT_RATE_LIMIT: ${COMMENT_RATE_LIMIT:-5}
+      OPEN_BALLOTS_PER_IP_PER_DAY: ${OPEN_BALLOTS_PER_IP_PER_DAY:-20}
+      SIGNING_KEY_PATH: /data/keys/ed25519.pem
+    volumes:
+      - ./spec/fixtures.json:/app/fixtures.json:ro
+      - signing-keys:/data/keys
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      mailpit:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 60
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # lets webhooks reach receivers on the host
+    ports:
+      - "8000:8000" # direct API access for curl; the browser uses :8080
+
+  web:
+    build:
+      context: ./src/web
+      args:
+        API_INTERNAL_URL: http://api:8000
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8080:3000"
+
+volumes:
+  postgres-data:
+  minio-data:
+  signing-keys:
