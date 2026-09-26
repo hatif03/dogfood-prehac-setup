@@ -1,0 +1,13 @@
+---
+description: Local compose only; seed on boot
+globs: docker-compose*.yml
+alwaysApply: false
+---
+
+# Compose
+
+- Services allowed: postgres, minio, redis, mailpit, api, web.
+- No cloud images that require a vendor account at runtime.
+- Seed official fixtures on boot (after kickoff files exist).
+- Network-off laptop must still start the portal.
+- Load `.skills/docker-offline/SKILL.md` before adding a service or dependency.

@@ -1,0 +1,13 @@
+---
+description: Next.js judge console; UI is not security
+globs: src/web/**
+alwaysApply: false
+---
+
+# Frontend
+
+- UI hiding is not RBAC. Assume the user curls the API.
+- Judge console: 30 reviews in ~5 hours must not be miserable (keyboard, persist draft scores).
+- Gallery search/filter is T1. Results stay hidden from non-organizers during the voting window.
+- Call only the local API. No browser keys for cloud AI or S3.
+- Embeddable widget (T4) is a separate public surface with a public token, not admin cookies.

@@ -1,0 +1,16 @@
+---
+description: Core Dogfood constraints for every session
+alwaysApply: true
+---
+
+# Core
+
+- Read `AGENTS.md`. Before product code, read `plans/00-north-star.md`.
+- No hosted runtime deps: Neon, Clerk, Auth0, Firebase, AWS S3, OpenAI-in-product, SendGrid, etc.
+- Portal must remain one-command local: Postgres, MinIO, Redis, Mailpit.
+- Role checks live in the API. Curl is the test. UI hiding is not isolation.
+- Never claim a tier the official suite did not pass. No fake `acceptance-report.txt`.
+- Product code is allowed against `context/` and `plans/`. When official spec/fixtures/suite drop, reconcile before claiming tiers. No fake `acceptance-report.txt`.
+- Do not rewrite Gavel, JunctionApp, Dribdat, Quill, or Hibiscus.
+- Prefer editing plans/context over expanding scope.
+- AI drafts are untrusted until `Reviewed: <name> <date>`.

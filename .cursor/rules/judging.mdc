@@ -1,0 +1,15 @@
+---
+description: Weighted rubric, robust normalization, pairwise
+globs: "{**/judging/**,**/normalization/**,**/pairwise/**}"
+alwaysApply: false
+---
+
+# Judging
+
+- Never average raw scores and call it done.
+- Weighted organizer rubric; weights sum to 1.
+- Robust z-score (median/MAD). Constant raters (MAD=0) must not divide-by-zero.
+- Incomplete batches: document shrink/exclude; persist `normalization_runs`.
+- Pairwise is an alternative mode, original MIT code, cite Gavel/Thurstone — do not fork Gavel.
+- Load `.skills/judging-maths/SKILL.md`.
+- Update `JUDGING.md` in the same change.

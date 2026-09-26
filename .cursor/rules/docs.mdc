@@ -1,0 +1,13 @@
+---
+description: Documentation is infrastructure; keep templates and journal in sync
+globs: "**/*.md"
+alwaysApply: false
+---
+
+# Docs
+
+- Follow Purpose → Status → Non-goals → Contract → Worked example → Open questions.
+- Product docs copy from `docs/templates/`. Do not invent passing acceptance output.
+- Same change: update ARCHITECTURE / DATA-MODEL / JUDGING / journal when the matching surface moved.
+- AI text needs `Reviewed: <name> <date>` before it is treated as true.
+- Load `.skills/docs-sync/SKILL.md` after mergeable doc or schema edits.

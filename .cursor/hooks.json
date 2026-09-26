@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      {
+        "type": "prompt",
+        "timeout": 10,
+        "failClosed": false,
+        "prompt": "If this session changed schema, API, judging, or product docs, remind the user to append docs/journal/ using docs/templates/SESSION-SUMMARY.md and to keep Reviewed: pending until a human checks it. If this was planning-only, say nothing extra."
+      }
+    ]
+  }
+}

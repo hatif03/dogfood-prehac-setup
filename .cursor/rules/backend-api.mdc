@@ -1,0 +1,15 @@
+---
+description: FastAPI RBAC, OpenAPI, audit on mutations
+globs: src/api/**
+alwaysApply: false
+---
+
+# Backend API
+
+- Session cookie auth + Argon2. No auth-as-a-service.
+- Enforce `context/role-isolation.md` in the service layer on list/get/export.
+- Track-scoped judges never see other tracks.
+- Every UI action must appear in OpenAPI (API First bonus).
+- Mutations write `audit_events` an organizer can read without SQL.
+- Deadlines are server-enforced. Client timestamps are not trusted.
+- Load `.skills/role-isolation/SKILL.md` before touching score or vote endpoints.
