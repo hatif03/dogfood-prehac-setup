@@ -1,0 +1,25 @@
+# .dogfood.toml — where things are in this portal.
+# Check with:  python3 spec/run.py .dogfood.toml > acceptance-report.txt
+# Code lives in src/api (FastAPI) and src/web (Next.js); the web origin proxies /v1/* to the API.
+
+[portal]
+base_url = "http://localhost:8080"
+
+[tiers]
+claimed = ["T1", "T2", "T3", "T4"]
+pitch = "A self-hosted hackathon portal whose judging engine adjusts for lenient and harsh judges with a documented, tested estimator, refuses peer scores at the API, and runs offline from one docker compose up."
+
+[auth]
+# Printed by the API on boot ("seeded. test logins"). Fixed demo sessions; DEMO_SESSIONS=false disables them.
+organizer   = "Cookie: portal_session=demo_org_7f2a9c41"
+judge_a     = "Cookie: portal_session=demo_jdg_a_91bc07"
+judge_b     = "Cookie: portal_session=demo_jdg_b_44de3e"
+participant = "Cookie: portal_session=demo_prt_2e88f1"
+
+[routes]
+gallery      = "/v1/events/sample-hack-2026/projects"
+submit       = "/v1/events/sample-hack-2026/projects"
+judge_scores = "/v1/events/sample-hack-2026/scores"
+# judge_a is fixture judge jdg_24; the checker sends this as judge_b (jdg_07).
+peer_scores  = "/v1/events/sample-hack-2026/scores?judge=jdg_24"
+csv_export   = "/v1/events/sample-hack-2026/export/results.csv"
