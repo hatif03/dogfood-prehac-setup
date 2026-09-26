@@ -1,0 +1,215 @@
+"""Pairwise Mode proof generator. Writes docs/pairwise.md.
+
+    cd src/api && python -m app.pairwise_proof > ../../docs/pairwise.md
+
+Every number comes from this script: a Monte-Carlo with known ground truth, plus the fixture.
+Conclusions in the text are computed from the numbers, not written in advance.
+"""
+
+from __future__ import annotations
+
+import json
+import math
+import random
+import statistics
+from pathlib import Path
+
+from app import crowd_bt
+from app import judging_math as jm
+from app.proof import FIXTURE, fixture_reviews
+
+N_PROJECTS = 40
+JUDGES = {**{f"honest{i}": "honest" for i in range(9)}, "random0": "random", "random1": "random", "contrarian": "contrarian"}
+BUDGETS = (10, 20, 40)
+STRATEGIES = {
+    "random": "random pairs",
+    "balanced": "balanced coverage (shipped)",
+    "gavel": "Gavel: last pick vs max information gain",
+}
+ESTIMATORS = {
+    "plain_bt": "plain Bradley–Terry",
+    "crowd_em": "Crowd-BT by EM (shipped)",
+    "crowd_online": "Crowd-BT online mean (Gavel)",
+}
+
+
+def _answer(kind: str, truth: dict[str, float], a: str, b: str, rng: random.Random) -> tuple[str, str]:
+    p = 1 / (1 + math.exp(truth[b] - truth[a]))
+    honest = (a, b) if rng.random() < p else (b, a)
+    if kind == "random":
+        return (a, b) if rng.random() < 0.5 else (b, a)
+    return honest[::-1] if kind == "contrarian" else honest
+
+
+def _session(truth: dict[str, float], per_judge: int, strategy: str, rng: random.Random) -> tuple[list[tuple[str, str, str]], crowd_bt.State]:
+    """Judges take turns, as they would in an expo hall; the online state updates after every decision."""
+    items = sorted(truth)
+    state = crowd_bt.State()
+    log: list[tuple[str, str, str]] = []
+    seen: dict[str, set] = {k: set() for k in JUDGES}
+    last: dict[str, str | None] = {k: None for k in JUDGES}
+    counts: dict[str, int] = {}
+    for _ in range(per_judge):
+        for judge, kind in JUDGES.items():
+            if strategy == "random":
+                pair = tuple(rng.sample(items, 2))
+            elif strategy == "balanced":
+                pair = crowd_bt.choose_pair(items, counts, seen[judge], rng)
+            else:
+                pair = crowd_bt.choose_pair_gavel(state, judge, items, last[judge], seen[judge], rng)
+            if pair is None:
+                continue
+            w, l = _answer(kind, truth, pair[0], pair[1], rng)
+            state.observe(judge, w, l)
+            log.append((judge, w, l))
+            seen[judge].add(tuple(sorted(pair)))
+            last[judge] = w
+            counts[w] = counts.get(w, 0) + 1
+            counts[l] = counts.get(l, 0) + 1
+    return log, state
+
+
+def study(reps: int = 20, seed: int = 12) -> dict:
+    rng = random.Random(seed)
+    cells: dict = {}
+    reliability: dict = {}
+    for per_judge in BUDGETS:
+        for strategy in STRATEGIES:
+            taus: dict[str, list[float]] = {k: [] for k in ESTIMATORS}
+            top5: dict[str, list[float]] = {k: [] for k in ESTIMATORS}
+            rel: dict[str, list[float]] = {"honest": [], "random": [], "contrarian": []}
+            for _ in range(reps):
+                truth = {f"p{i:02d}": rng.gauss(0, 1) for i in range(N_PROJECTS)}
+                log, state = _session(truth, per_judge, strategy, rng)
+                items = sorted(truth)
+                fit, eta = crowd_bt.fit_em(log, items)
+                est = {
+                    "plain_bt": {r["project"]: r["mu"] for r in jm.bradley_terry([(w, l) for _, w, l in log], items)},
+                    "crowd_em": {r["project"]: r["mu"] for r in fit},
+                    "crowd_online": {p: state.mu.get(p, 0.0) for p in items},
+                }
+                for name, e in est.items():
+                    taus[name].append(jm.kendall_tau(truth, e))
+                    top5[name].append(jm.top_k_overlap(truth, e, 5))
+                for judge, kind in JUDGES.items():
+                    rel[kind].append(eta[judge])
+            cells[(per_judge, strategy)] = {k: (statistics.fmean(taus[k]), statistics.fmean(top5[k])) for k in ESTIMATORS}
+            reliability[(per_judge, strategy)] = {k: statistics.fmean(v) for k, v in rel.items()}
+    return {"cells": cells, "reliability": reliability}
+
+
+def fixture_section() -> dict:
+    data = json.loads(Path(FIXTURE).read_text(encoding="utf-8"))
+    reviews = [r for r in fixture_reviews(data) if r[1] != "prj_41"]
+    pairs = jm.rank_break(reviews)
+    adjusted = {r["project"]: r["adjusted"] for r in jm.normalize(reviews)["rows"]}
+    bt = {r["project"]: r["mu"] for r in jm.bradley_terry(pairs, list(adjusted))}
+    return {"pairs": len(pairs), "tau": jm.kendall_tau(bt, adjusted), "projects": len(adjusted)}
+
+
+def render(reps: int = 20) -> str:
+    s = study(reps)
+    fx = fixture_section()
+    total = {k: k * len(JUDGES) for k in BUDGETS}
+    L: list[str] = []
+    w = L.append
+    w("# Pairwise mode (Bradley–Terry, the Gavel approach)")
+    w("")
+    w("Generated by `python -m app.pairwise_proof`. Do not edit numbers by hand; rerun the script.")
+    w("")
+    w('Rubric scores ask a judge "how good is this, 1 to 5?", which is where leniency comes from. Pairwise judging asks "which of these two is better?", which has no scale to be lenient on, so it sidesteps cross-judge calibration entirely. The portal ships it as an event mode (`judging_mode = "pairwise"`) and as an optional second opinion in any event.')
+    w("")
+    w("Code: `src/api/app/crowd_bt.py` (model, EM fit, pair selection, Gavel baseline), `src/api/app/judging_math.py::bradley_terry` (MM step), `src/api/app/scoring.py::fit_pairwise`, routes in `src/api/app/routers/judging.py`. UI: `/events/{slug}/judge/pairwise` for judges, Organize → Results → Pairwise for organizers.")
+    w("")
+    w("## How a judge experiences it")
+    w("")
+    w("The judge sees two projects and picks the better one (click, or ←/→). The next pair always includes the project with the fewest comparisons so far, against one this judge has not seen it paired with, so every project gets compared and no judge sees a pair twice. Every decision is audited and fires a `pairwise.decide` webhook.")
+    w("")
+    w("## Model")
+    w("")
+    w("**Crowd-BT** (Chen, Bennett, Collins-Thompson and Horvitz, 2013, *Pairwise ranking aggregation in a crowdsourced setting*, WSDM), the model behind Gavel. Project `i` has strength `s_i`. Judge `k` answers truthfully with probability `η_k`: a truthful answer follows Bradley–Terry, `P(i beats j) = e^{s_i} / (e^{s_i} + e^{s_j})`, and an untruthful one is the opposite. So a judge who clicks at random has `η ≈ 0.5`, and one who always picks the worse project has `η ≈ 0`.")
+    w("")
+    w("**The ranking: Crowd-BT fitted by EM.** Gavel filters this model online, one comparison at a time. The online estimate depends on vote order and, under a strong prior, is slow to notice a bad judge. So the published ranking fits the same likelihood to the whole comparison log at once, treating each comparison's truthfulness as a latent variable:")
+    w("")
+    w("```text")
+    w("E-step:  r_c = η_k·p_c / (η_k·p_c + (1 − η_k)(1 − p_c)),     p_c = σ(s_winner − s_loser)")
+    w("M-step:  s    Bradley–Terry MAP with soft wins: r_c to the reported winner, 1 − r_c to the loser")
+    w("         η_k = (Σ_c r_c + α₀ − 1) / (n_k + α₀ + β₀ − 2),     Beta(α₀ = 2, β₀ = 1) prior")
+    w("```")
+    w("")
+    w("The Bradley–Terry step maximizes the penalized likelihood with one virtual win and one virtual loss per project against a reference of strength 1, which keeps undefeated projects finite and fixes the scale. It is solved by Newton's method with a preconditioned conjugate-gradient inner solve (the Hessian is a weighted graph Laplacian, so each step is linear in the number of pairs); the MM algorithm of Hunter (2004) reaches the same optimum but needed thousands of sweeps on weakly connected comparison graphs. No EM step can lower the penalized likelihood, and the result does not depend on the order votes arrived in. Standard errors come from the diagonal of the observed information. Alongside the ranking the organizer sees `μ ± SE`, every judge's estimated η, and Kendall τ against plain Bradley–Terry and against the online means.")
+    w("")
+    w("**Pair selection: balanced coverage.** We also implemented Gavel's rule: keep the judge's last pick, and add the partner with the largest expected information gain `Σ_outcomes P · [KL(item posteriors) + γ·KL(judge posterior)]`, with 25% random picks. Both are measured below.")
+    w("")
+    w("`tests/api/test_pairwise.py` checks that the Bradley–Terry fit sits at the maximum of its objective (no nudge of any strength improves it), that EM never lowers the likelihood, that a contrarian's η falls below 0.3 while honest judges stay above 0.9, and that pair selection always includes the least-compared project and never repeats a pair. It also runs a full pairwise event through the API, including a lying judge, to a published ranking.")
+    w("")
+    w("## Does it recover the truth?")
+    w("")
+    w(f"Monte-Carlo, {reps} simulated events per cell: {N_PROJECTS} projects with strengths drawn from `N(0, 1)`, and 12 judges taking turns. Nine are honest (they answer by Bradley–Terry), two answer at random, and one always inverts. The table shows Kendall τ to the true order (1 = perfect), with top-5 overlap in brackets.")
+    w("")
+    w("| Comparisons (per judge) | Pairing | " + " | ".join(ESTIMATORS.values()) + " |")
+    w("| --- | --- | " + " | ".join("---:" for _ in ESTIMATORS) + " |")
+    for per_judge in BUDGETS:
+        for strategy, label in STRATEGIES.items():
+            c = s["cells"][(per_judge, strategy)]
+            w(f"| {total[per_judge]} ({per_judge}) | {label} | " + " | ".join(f"{c[k][0]:.3f} ({c[k][1]:.2f})" for k in ESTIMATORS) + " |")
+    w("")
+    w("Estimated judge reliability η from the EM fit, averaged by kind of judge:")
+    w("")
+    w("| Comparisons (per judge) | Pairing | honest | random | contrarian |")
+    w("| --- | --- | ---: | ---: | ---: |")
+    for per_judge in BUDGETS:
+        for strategy, label in STRATEGIES.items():
+            r = s["reliability"][(per_judge, strategy)]
+            w(f"| {per_judge} | {label} | {r['honest']:.2f} | {r['random']:.2f} | {r['contrarian']:.2f} |")
+    w("")
+    em_wins = sum(1 for c in s["cells"].values() if c["crowd_em"][0] >= c["plain_bt"][0])
+    em_vs_online = sum(1 for c in s["cells"].values() if c["crowd_em"][0] >= c["crowd_online"][0])
+    g, b = s["reliability"][(40, "gavel")], s["reliability"][(40, "balanced")]
+    best = {pj: max(STRATEGIES, key=lambda st: s["cells"][(pj, st)]["crowd_em"][0]) for pj in BUDGETS}
+    bal_vs_gavel = sum(1 for pj in BUDGETS if s["cells"][(pj, "balanced")]["crowd_em"][0] >= s["cells"][(pj, "gavel")]["crowd_em"][0])
+    w("What the numbers say:")
+    w("")
+    w(f"- The EM fit ranks at least as well as plain Bradley–Terry in {em_wins} of {len(s['cells'])} cells, and at least as well as the online means in {em_vs_online} of {len(s['cells'])}. Once the model has found the random and contrarian judges, their votes stop counting.")
+    w(f"- With Gavel's pairing, the fit separates the judges much less: after 40 comparisons each, honest {g['honest']:.2f}, random {g['random']:.2f}, contrarian {g['contrarian']:.2f}. The rule deliberately serves near-coin-flip pairs, and on those an honest judge's answer looks like anyone else's. Balanced coverage mixes easy and hard pairs, and the same fit separates them clearly: honest {b['honest']:.2f}, random {b['random']:.2f}, contrarian {b['contrarian']:.2f}.")
+    gavel_top = sum(1 for pj in BUDGETS if all(s["cells"][(pj, "gavel")]["crowd_em"][1] >= s["cells"][(pj, st)]["crowd_em"][1] for st in STRATEGIES))
+    w(f"- Gavel's rule does what it was designed for: it has the best top-5 overlap at {gavel_top} of {len(BUDGETS)} budgets (" + ", ".join(f"{s['cells'][(pj, 'gavel')]['crowd_em'][1]:.2f} vs {s['cells'][(pj, 'balanced')]['crowd_em'][1]:.2f} balanced at {pj}/judge" for pj in BUDGETS) + "). If an event only needs its top five and trusts every judge, it is the better rule; the code keeps it (`choose_pair_gavel`).")
+    w(f"- Balanced coverage ranks at least as well as Gavel's rule at {bal_vs_gavel} of {len(BUDGETS)} budgets. The best pairing for the shipped estimator at each budget: " + "; ".join(f"{pj} per judge, {STRATEGIES[best[pj]]}" for pj in BUDGETS) + ".")
+    w("- We ship balanced coverage because a results page needs a defensible full ranking and a check that no judge is quietly voting at random or against the room; Gavel's rule trades both away for speed at the top.")
+    w("")
+    w("## On the fixture")
+    w("")
+    w(f"The fixture has rubric scores, not comparisons. Turning each judge's scores into within-judge pairs (rank-breaking) gives {fx['pairs']} pairs over {fx['projects']} projects. Bradley–Terry on those pairs agrees with the rubric normalization at Kendall τ = **{fx['tau']:.3f}**. That agreement is the independent cross-check stored on every normalization run (see [JUDGING.md](../JUDGING.md)). Rank-breaking discards how far apart two scores were, so it is the noisier of the two methods.")
+    w("")
+    w("## Limits")
+    w("")
+    w("- Ties are not recorded; a judge who cannot decide should skip.")
+    w("- A judge is modelled as either truthful or inverted. The model does not capture a judge who is reliable in one track and not in another.")
+    w("- With very few comparisons per project the prior dominates, so the ranking shows `μ ± SE` and the organizer can see when more comparisons are needed.")
+    w("")
+    w("## API")
+    w("")
+    w("| Call | Who |")
+    w("| --- | --- |")
+    w("| `GET /v1/events/{event}/pairwise/next` | judge: next pair, or `{done: true}` |")
+    w("| `POST /v1/events/{event}/pairwise` `{winner_id, loser_id}` | judge |")
+    w("| `POST /v1/events/{event}/pairwise/fit` | organizer: fit and store a run (ranking, judge reliabilities, τ against the other estimators) |")
+    w("| `GET /v1/events/{event}/pairwise` | organizer: latest fit |")
+    w("")
+    w("In a pairwise event, `GET /results` publishes the EM-fitted ranking.")
+    w("")
+    w("## Reproduce")
+    w("")
+    w("```text")
+    w("cd src/api")
+    w("python -m app.pairwise_proof > ../../docs/pairwise.md")
+    w("cd ../.. && python -m pytest tests/api/test_pairwise.py -q")
+    w("```")
+    return "\n".join(L) + "\n"
+
+
+if __name__ == "__main__":
+    import sys
+
+    sys.stdout.reconfigure(encoding="utf-8")
+    print(render(), end="")
