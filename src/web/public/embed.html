@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Portal embed demo</title>
+    <style>
+      body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: #f4f3ee; color: #111; }
+      main { max-width: 860px; margin: 40px auto; padding: 0 16px; }
+      code { background: #e6e4dc; padding: 2px 6px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Embed demo</h1>
+      <p>Open <code>/embed.html?token=WIDGET_TOKEN</code> (organizers find the token under Organize → Integrations). A host page only needs:</p>
+      <p><code>&lt;script src="/embed.js" data-token="WIDGET_TOKEN" data-height="560" async&gt;&lt;/script&gt;</code></p>
+      <div id="slot"></div>
+    </main>
+    <script>
+      var token = new URLSearchParams(location.search).get("token");
+      if (token) {
+        var s = document.createElement("script");
+        s.src = "/embed.js";
+        s.setAttribute("data-token", token);
+        s.setAttribute("data-height", "560");
+        document.getElementById("slot").appendChild(s);
+      }
+    </script>
+  </body>
+</html>

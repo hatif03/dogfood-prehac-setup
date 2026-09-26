@@ -1,0 +1,130 @@
+/* Radix sits between Tailwind's base and utilities: it beats preflight, and utility classes still override it. */
+@layer theme, base, radix, components, utilities;
+@import "tailwindcss";
+@import "@radix-ui/themes/styles.css" layer(radix);
+
+/* `dark:` follows the class the head script puts on <html>, not only the media query. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Colour tokens are Radix steps, so every class adapts to light and dark and inherits Radix contrast.
+ * `inline` makes utilities read the Radix variable where they are used (inside <Theme>), not at :root.
+ * Fills and borders use step 9; text in a colour uses the -11 token (readable on both themes).
+ */
+@theme inline {
+  --color-*: initial;
+  --color-white: #fff;
+  --color-black: #000;
+
+  --color-bg: var(--color-background);
+  --color-surface: var(--gray-2);
+  --color-surface-2: var(--gray-3);
+  --color-surface-3: var(--gray-4);
+  --color-tint: var(--gray-a3);
+  --color-tint-strong: var(--gray-a4);
+  --color-line: var(--gray-a5);
+  --color-line-strong: var(--gray-a7);
+  --color-fg: var(--gray-12);
+  --color-muted: var(--gray-11);
+  --color-subtle: var(--gray-10);
+
+  --color-accent: var(--accent-9);
+  --color-accent-fg: var(--accent-contrast);
+  --color-accent-11: var(--accent-11);
+  --color-cyan: var(--cyan-9);
+  --color-cyan-11: var(--cyan-11);
+  --color-violet: var(--violet-9);
+  --color-violet-11: var(--violet-11);
+  --color-coral: var(--tomato-9);
+  --color-coral-11: var(--tomato-11);
+  --color-amber: var(--amber-9);
+  --color-amber-11: var(--amber-11);
+
+  --shadow-card: var(--shadow-2);
+  --shadow-glow: 0 0 0 1px var(--accent-a7), 0 8px 24px -10px var(--accent-a8);
+}
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+  --radius-3xl: 1.5rem;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-page-in: page-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-line-up: line-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes line-up {
+    from { transform: translateY(105%); }
+  }
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+/* Site header (3.5rem) + sticky event bar (~5.3rem) + a gap. Page-level sticky sidebars on event pages use lg:top-(--event-sticky-top). */
+:root { --event-sticky-top: 10rem; }
+
+.radix-themes {
+  --default-font-family: var(--font-sans);
+  --heading-font-family: var(--font-sans);
+  --code-font-family: var(--font-mono);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  html.dark { color-scheme: dark; }
+  html.light { color-scheme: light; }
+  body {
+    background: var(--gray-1);
+    min-height: 100dvh;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--accent-a6);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus-8);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-a6) transparent;
+  }
+}
+
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, var(--gray-a3) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--gray-a3) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Radix Toast: slide in from the right, follow the swipe, leave the way it came. */
+.toast-root[data-state="open"] { animation: toast-in 280ms cubic-bezier(0.16, 1, 0.3, 1); }
+.toast-root[data-state="closed"] { animation: toast-out 180ms ease-in forwards; }
+.toast-root[data-swipe="move"] { transform: translateX(var(--radix-toast-swipe-move-x)); }
+.toast-root[data-swipe="cancel"] { transform: translateX(0); transition: transform 200ms ease-out; }
+.toast-root[data-swipe="end"] { animation: toast-swipe-out 150ms ease-out forwards; }
+@keyframes toast-in { from { opacity: 0; transform: translateX(calc(100% + 1.5rem)); } }
+@keyframes toast-out { to { opacity: 0; transform: translateX(40%); } }
+@keyframes toast-swipe-out { to { transform: translateX(calc(100% + 1.5rem)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
