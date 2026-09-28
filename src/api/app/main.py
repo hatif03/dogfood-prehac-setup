@@ -30,7 +30,12 @@ async def lifespan(app: FastAPI):
             # Several workers boot at once; one creates the schema and seeds, the rest wait.
             db.execute(text("SELECT pg_advisory_lock(4242)"))
         try:
-            Base.metadata.create_all(bind=db.connection())
+            if engine.dialect.name == "postgresql":
+                from app.migrate import upgrade_head
+
+                upgrade_head()
+            else:
+                Base.metadata.create_all(bind=db.connection())
             db.commit()
             load_or_create_key()
             if settings.seed_on_boot:

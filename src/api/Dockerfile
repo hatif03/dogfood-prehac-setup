@@ -7,6 +7,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
+COPY alembic.ini .
+COPY alembic ./alembic
 
 EXPOSE 8000
 # Several workers share Postgres, Redis and the webhook queue (claims use SKIP LOCKED).
