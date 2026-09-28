@@ -73,6 +73,9 @@
   --default-font-family: var(--font-sans);
   --heading-font-family: var(--font-display), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --code-font-family: var(--font-mono);
+  min-height: 100dvh;
+  background-color: var(--color-background);
+  color: var(--gray-12);
 }
 
 @utility font-display {
@@ -109,8 +112,10 @@
   }
   html.dark { color-scheme: dark; }
   html.light { color-scheme: light; }
+  /* Body sits outside .radix-themes; Radix tokens are not defined here. */
+  html.dark body { background: #0a0a0b; }
+  html.light body { background: #fafafa; }
   body {
-    background: var(--gray-1);
     min-height: 100dvh;
     text-rendering: optimizeLegibility;
   }

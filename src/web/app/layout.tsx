@@ -32,7 +32,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${syne.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`dark ${GeistSans.variable} ${GeistMono.variable} ${syne.variable}`} suppressHydrationWarning>
       <head>
         {/* Sets .light/.dark before first paint so there is no flash; see lib/theme.ts. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               Skip to content
             </a>
             <SiteHeader />
-            <main id="main" className="flex-1">
+            <main id="main" className="flex-1 bg-bg">
               {children}
             </main>
             <SiteFooter />

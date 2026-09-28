@@ -11,7 +11,8 @@ Visual reference: [Hackathon Raptors](https://www.raptors.dev/) — editorial da
 | `accentColor` | `amber` | Warm CTA highlight (replaces lime) |
 | `grayColor` | `gray` | Neutral chrome (replaces olive) |
 | `radius` | `medium` | |
-| `panelBackground` | `translucent` | Header / panels |
+| `panelBackground` | `solid` | Opaque page background (translucent showed white through on event pages) |
+| `hasBackground` | `true` | Radix root background |
 | Default appearance | `dark` | First visit; `portal-theme` in `localStorage`; Radix `appearance` synced via `components/theme-provider.tsx` |
 
 ## Semantic aliases (`globals.css`)

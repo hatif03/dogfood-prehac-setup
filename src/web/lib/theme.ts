@@ -9,4 +9,4 @@ export function applyAppearance(value: Appearance) {
 }
 
 /** Inlined in <head> by app/layout.tsx so the right class is on <html> before the first paint. */
-export const THEME_SCRIPT = `(function(){var s;try{s=localStorage.getItem("${THEME_KEY}")}catch(e){}var d=s?s==="dark":s?s==="light":true;document.documentElement.classList.add(d?"dark":"light")})()`;
+export const THEME_SCRIPT = `(function(){var s,d;try{s=localStorage.getItem("${THEME_KEY}")}catch(e){}d=s?s==="dark":s?s==="light":true;var r=document.documentElement;r.classList.remove("light","dark");r.classList.add(d?"dark":"light")})()`;
