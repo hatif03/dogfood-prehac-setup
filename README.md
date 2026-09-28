@@ -46,6 +46,28 @@ python3 spec/run.py .dogfood.toml                        # official checker
 python3 tests/acceptance/extended.py .dogfood.toml       # our T2–T4 checks
 ```
 
+Or run the full pre-freeze gate (health check, both reports, checker-parity pytest):
+
+```powershell
+.\scripts\verify-submission.ps1
+```
+
+```bash
+./scripts/verify-submission.sh
+```
+
+### Verify judging isolation
+
+The official checker and organizers expect peer scores to be denied in the API, not hidden in the UI. As **judge B** (`demo_jdg_b_44de3e`, fixture `jdg_07`), requesting another judge's scores must return **403**:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" \
+  -H "Cookie: portal_session=demo_jdg_b_44de3e" \
+  "http://localhost:8080/v1/events/sample-hack-2026/scores?judge=jdg_24"
+```
+
+Expect `403`. Implementation: [`Actor.may_read_judge`](src/api/app/rbac.py) and [`list_scores`](src/api/app/routers/judging.py). Organizers may pass any `judge=` ref; judges only see themselves.
+
 ### Sign in
 
 Every seeded account's password is `password`. The sign-in page has one-click buttons for each.
@@ -60,7 +82,7 @@ Every seeded account's password is `password`. The sign-in page has one-click bu
 
 ### What is seeded
 
-- **Sample Hack 2026** (`/events/sample-hack-2026`): the official fixture. 41 projects, 30 judges, 8 tracks, 126 reviews (4 of them on the duplicate, so 122 count). Submissions closed on 2026-03-01, so the portal refuses new ones. The duplicate (`prj_41`) is flagged and hidden. A normalization run exists. As demo configuration, a two-week email-gated community vote is open, so results are hidden until an organizer closes voting and publishes.
+- **Sample Hack 2026** (`/events/sample-hack-2026`): the official fixture. 41 projects, 30 judges, 8 tracks, 126 reviews (4 of them on the duplicate, so 122 count). Submissions closed on 2026-03-01, so the portal refuses new ones. The duplicate (`prj_41`) is flagged and hidden. A normalization run exists. As demo configuration, a two-week **email-gated quadratic** community vote is open (25 credits, cost = units²), so results are hidden until an organizer closes voting and publishes.
 - **Playground Hack** (`/events/playground`): synthetic and labelled as such. Submissions are open, so you can run the whole lifecycle: create a team, share the invite link, save a draft, submit, judge, publish.
 
 ## What it does
@@ -77,13 +99,20 @@ Every seeded account's password is `password`. The sign-in page has one-click bu
 
 **Interface.** Built on Radix Themes and Primitives, light and dark. Signing in lands on "Your work": each event you belong to, your role in it and the one next step. Organizers get a lifecycle rail (setup → submissions → judging → voting → results → archive) with the next action on it. Each view has one primary action. Motion follows Amicro's rules: short entrances, feedback on every action, nothing moving on its own while you work, and reduced motion respected. axe-core reports no serious or critical violations on any screen in either theme, and nothing scrolls sideways at 390 px.
 
-## Using it for a real event
+## Production checklist
 
-1. `cp .env.example .env` and set `SESSION_SECRET` to a long random string and `DEMO_SESSIONS=false`.
-2. Set `PUBLIC_URL` (docker-compose.yml, api service) to the address people will use; invite and voting links are built from it.
-3. Put TLS in front of port 8080 (Caddy or nginx). Do not expose port 8000 publicly.
-4. Sign in as an organizer, create the event (or `POST /v1/import` a fixtures-shaped file), invite judges from the Organize → Judging tab.
-5. To take data out: Organize → Integrations → Export (`export.json` re-imports into a fresh install).
+Use this when the portal faces real participants (not the hackathon demo seed).
+
+1. `cp .env.example .env` — set `SESSION_SECRET` to a long random string; set `DEMO_SESSIONS=false` so acceptance cookies are disabled.
+2. Set `PUBLIC_URL` on the API service (see `docker-compose.yml`) to the HTTPS origin people use; judge invites and voting links are built from it.
+3. Terminate TLS in front of port **8080** (Caddy, nginx, etc.). Do not expose port **8000** on the public internet.
+4. Back up Postgres volume and MinIO data before schema changes; there is no Alembic migration path yet (export JSON per event, empty DB, re-import).
+5. Run `.\scripts\verify-submission.ps1` (or `.sh`) after deploy and before freeze; keep `acceptance-report.txt` honest (7/7 official, T1+T2 verified only).
+6. Sign in as organizer → create event or `POST /v1/import` → invite judges (Organize → Judging) → set submission questions if needed (Organize → Settings).
+7. Export: Organize → Integrations → `export.json` (lossless round-trip per tests).
+8. Before submission deadline, add `Reviewed: <name> <date>` to [JUDGING.md](JUDGING.md), [THREAT-MODEL.md](THREAT-MODEL.md), and regenerated proof docs if you changed scoring code.
+
+Demo video: follow [docs/demo-script.md](docs/demo-script.md) when you record the five-minute lifecycle clip.
 
 ## Honest limitations
 
