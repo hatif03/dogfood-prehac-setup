@@ -130,6 +130,10 @@ def accept_invite(token: str, body: InviteAcceptIn, response: Response, db: DB, 
         account.password_hash = hash_password(body.password)
         if body.display_name:
             account.display_name = body.display_name
+        if account.email_verified_at is None:
+            from app.timeutil import now
+
+            account.email_verified_at = now()
         db.flush()
         start_session(db, response, account)
         user = account

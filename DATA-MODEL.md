@@ -1,5 +1,7 @@
 # Data model
 
+Reviewed: hatif03 2026-09-28
+
 PostgreSQL 16 in production, SQLite in tests; the same SQLAlchemy 2 models (`src/api/app/models.py`) run on both. Primary keys are UUIDs. Every timestamp is stored as UTC.
 
 The tables fall into six groups. The design choices worth defending are at the end.
@@ -8,7 +10,8 @@ The tables fall into six groups. The design choices worth defending are at the e
 
 | Table | Holds | Key constraints |
 | --- | --- | --- |
-| `users` | email, display name, Argon2id hash (or `!` for an unclaimed imported account), platform-admin flag, `external_id` (e.g. fixture `jdg_24`) | email unique |
+| `users` | email, display name, Argon2id hash (or `!` for an unclaimed imported account), `email_verified_at`, platform-admin flag, `external_id` (e.g. fixture `jdg_24`) | email unique |
+| `email_verifications` | one-time token for registration confirm, expiry | token unique |
 | `sessions` | HMAC of the session token, expiry, label (`login` or `demo`) | token hash unique |
 | `event_roles` | one row per (event, user): `participant`, `judge`, `organizer`, `admin` | **unique (event, user)**: nobody holds two roles in one event |
 | `judge_tracks` | which tracks a judge covers; no rows = every track | unique (role, track) |
@@ -19,7 +22,7 @@ The tables fall into six groups. The design choices worth defending are at the e
 
 | Table | Holds |
 | --- | --- |
-| `events` | slug, `external_id`, copy, the date fields (`starts_at`, `ends_at`, `submissions_open_at`, `submissions_deadline`, `judging_deadline`, `voting_opens_at`, `voting_closes_at`), `judging_mode`, `voting_access`, `vote_mode`, `reviews_per_project`, `quadratic_budget`, `max_team_size`, `results_published`, `archived`, `widget_token` |
+| `events` | slug, `external_id`, copy, the date fields (`starts_at`, `ends_at`, `submissions_open_at`, `submissions_deadline`, `judging_deadline`, `voting_opens_at`, `voting_closes_at`), `judging_mode`, `voting_access`, `vote_mode`, `reviews_per_project`, `quadratic_budget`, `max_team_size`, `require_verified_email`, `results_published`, `archived`, `widget_token` |
 | `tracks` | per-event, unique slug |
 | `prizes` | per-event, optionally per-track, ordered |
 | `custom_questions` | extra submission questions |

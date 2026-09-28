@@ -1,5 +1,7 @@
 # Threat model
 
+Reviewed: hatif03 2026-09-28
+
 How someone could make a hackathon's result wrong, and what this portal does about it. The five attacks the brief names come first, each with what we stop, what we do not, and the test that proves the part we claim. The honest list is the point: several of these can only be made expensive or visible, not impossible.
 
 Every control names the code that implements it and a test in `tests/api/`.
@@ -23,7 +25,7 @@ The organizer is trusted for their own event. Organizer account takeover is out 
 | Voting mode | Identity per ballot | What stops a second ballot | What does not |
 | --- | --- | --- | --- |
 | `link` | A single-use link the organizer hands out | The link is the ballot; there is nothing to register | Links that are shared or sold |
-| `authenticated` | An account | Unique `(event, "user:<id>")`; registration is rate-limited per IP (10/min) | Anyone willing to register many accounts; there is no email verification at registration |
+| `authenticated` | A verified account | Unique `(event, "user:<id>")`; registration is rate-limited per IP (10/min); new accounts must confirm email (Mailpit locally) before voting when `require_verified_email` is on (default) | Anyone willing to register many accounts and inboxes; honeypot fields reject naive bots |
 | `email_gated` | A *canonical* email address | Unique `(event, "email:<canonical>")` with case, `+tags` and Gmail dots collapsed; the ballot token is only ever sent by email, never returned by the API; 3 voting-link emails per address per hour | Someone with many real inboxes |
 | `open` | A browser cookie | Same browser gets the same ballot back; 20 new ballots per IP per day | Clearing cookies, or many IPs. This is the weakest mode by design: the one to use when turnout matters more than integrity |
 
@@ -112,6 +114,6 @@ Evidence: `test_deadline.py::test_invite_link_draft_edit_submit_then_deadline_lo
 
 - **Demo sessions.** `DEMO_SESSIONS=true`, the compose default so the acceptance checker can attach headers, creates fixed session tokens for five seeded accounts. **For a real event, set `DEMO_SESSIONS=false` and change `SESSION_SECRET`.**
 - **`TRUST_PROXY=true`** trusts `X-Forwarded-For` from the web proxy. Do not expose port 8000 publicly with it on, or clients can spoof their IP for rate limiting.
-- **No email verification at registration.** Authenticated voting trusts accounts.
-- **No CAPTCHA.** That would need a hosted service, which the offline rule forbids.
+- **Email verification is local-mail only.** It stops casual double accounts on one inbox, not a determined attacker with many addresses.
+- **No third-party CAPTCHA.** Registration and open ballots include honeypot fields; gallery reads are rate-limited per IP (Redis in compose).
 - **One API process runs the webhook worker.** With several API replicas, run one worker. Deliveries are at-least-once, so receivers should dedupe on `X-Portal-Delivery`.

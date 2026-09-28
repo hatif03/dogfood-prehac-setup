@@ -84,6 +84,7 @@ def event_detail(db: Session, event: Event, actor: Actor) -> dict:
             "reviews_per_project": event.reviews_per_project,
             "quadratic_budget": event.quadratic_budget,
             "max_team_size": event.max_team_size,
+            "require_verified_email": event.require_verified_email,
             "submissions_open": submissions_open(event),
             "voting_open": voting_open(event),
             "results_visible": results_visible(event, actor),

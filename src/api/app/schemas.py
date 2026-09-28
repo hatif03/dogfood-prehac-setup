@@ -26,6 +26,7 @@ class RegisterIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=200)
     display_name: str = Field(min_length=1, max_length=200)
+    website: str = Field(default="", max_length=200)  # honeypot; must stay empty
 
 
 class LoginIn(BaseModel):
@@ -92,6 +93,7 @@ class EventFields(BaseModel):
     reviews_per_project: int | None = Field(default=None, ge=1, le=20)
     quadratic_budget: int | None = Field(default=None, ge=1, le=1000)
     max_team_size: int | None = Field(default=None, ge=1, le=20)
+    require_verified_email: bool | None = None
 
 
 class EventCreate(EventFields):
@@ -181,6 +183,7 @@ class PairwiseIn(BaseModel):
 class BallotIn(BaseModel):
     email: EmailStr | None = None
     link_token: str | None = None
+    website: str = Field(default="", max_length=200)  # honeypot; must stay empty
 
 
 class VoteIn(BaseModel):

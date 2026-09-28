@@ -10,6 +10,7 @@ from fastapi.responses import Response
 
 from app.audit import audit
 from app.config import settings
+from app.rate_limit import enforce
 from app.deps import DB, ActorDep, RequiredUser, actor_for, client_ip
 from app.importer import detect_duplicates
 from app.models import (
@@ -42,7 +43,8 @@ def ensure_open(event: Event) -> None:
 
 
 @router.get("/events/{event_id}/projects", summary="Public gallery with search and filters")
-def gallery(actor: ActorDep, db: DB, q: str | None = None, track: str | None = None, tag: str | None = None):
+def gallery(request: Request, actor: ActorDep, db: DB, q: str | None = None, track: str | None = None, tag: str | None = None):
+    enforce(f"gallery:{client_ip(request)}", settings.gallery_rate_limit, settings.gallery_rate_window_seconds)
     rows = gallery_rows(db, actor.event)
     needle = (q or "").strip().lower()
     counts = comment_counts(db, actor.event.id)

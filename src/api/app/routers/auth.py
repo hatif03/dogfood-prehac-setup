@@ -11,11 +11,16 @@ from app.models import Assignment, Event, EventRole, Score, Submission
 from app.models import Session as AuthSession
 from app.models import User
 from app.rate_limit import enforce
+from app.email_verify import issue_verification, verify_token
 from app.schemas import LoginIn, RegisterIn, UserOut
 from app.security import hash_password, hash_token, new_token, session_expiry, verify_password
 from app.views import event_summary
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
+
+
+def _user_out(user: User) -> dict:
+    return {**UserOut.model_validate(user).model_dump(mode="json"), "email_verified": user.email_verified_at is not None}
 
 
 def start_session(db, response: Response, user: User) -> None:
@@ -28,6 +33,8 @@ def start_session(db, response: Response, user: User) -> None:
 
 @router.post("/register", response_model=UserOut, summary="Create an account and sign in")
 def register(body: RegisterIn, request: Request, response: Response, db: DB):
+    if body.website.strip():
+        raise HTTPException(400, "Could not create account")
     enforce(f"register:{client_ip(request)}", settings.login_rate_limit)
     email = body.email.lower()
     existing = db.query(User).filter(User.email == email).one_or_none()
@@ -37,9 +44,10 @@ def register(body: RegisterIn, request: Request, response: Response, db: DB):
     db.add(user)
     db.flush()
     start_session(db, response, user)
+    issue_verification(db, user)
     audit(db, action="auth.register", summary=f"{user.display_name} created an account", actor=user)
     db.commit()
-    return user
+    return _user_out(user)
 
 
 @router.post("/login", response_model=UserOut, summary="Sign in with email and password")
@@ -51,7 +59,27 @@ def login(body: LoginIn, request: Request, response: Response, db: DB):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Wrong email or password")
     start_session(db, response, user)
     db.commit()
-    return user
+    return _user_out(user)
+
+
+@router.post("/verify-email/resend", summary="Send another confirmation email")
+def resend_verify(user: RequiredUser, db: DB):
+    if user.email_verified_at is not None:
+        return {"ok": True, "email_verified": True}
+    issue_verification(db, user)
+    db.commit()
+    return {"ok": True, "status": "sent"}
+
+
+@router.post("/verify-email/{token}", summary="Confirm email from the link in your inbox")
+def verify_email(token: str, db: DB):
+    try:
+        user = verify_token(db, token)
+    except ValueError as e:
+        raise HTTPException(400, "This link is invalid or has expired. Sign in and request a new one.") from e
+    audit(db, action="auth.verify_email", summary=f"{user.display_name} confirmed their email", actor=user)
+    db.commit()
+    return {"ok": True, "email_verified": True}
 
 
 @router.post("/logout", summary="End the current session only")
@@ -99,6 +127,6 @@ def me(user: RequiredUser, db: DB):
         .all()
     )
     return {
-        **UserOut.model_validate(user).model_dump(mode="json"),
+        **_user_out(user),
         "roles": [{"event_id": str(e.id), "event_slug": e.slug, "event_name": e.name, "role": r.role} for r, e in roles],
     }

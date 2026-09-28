@@ -72,9 +72,20 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     is_platform_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     external_id: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     roles: Mapped[list[EventRole]] = relationship(back_populates="user")
+
+
+class EmailVerification(Base):
+    __tablename__ = "email_verifications"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uid)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 class Session(Base):
@@ -113,6 +124,7 @@ class Event(Base):
     reviews_per_project: Mapped[int] = mapped_column(Integer, default=3)
     quadratic_budget: Mapped[int] = mapped_column(Integer, default=25)
     max_team_size: Mapped[int] = mapped_column(Integer, default=4)
+    require_verified_email: Mapped[bool] = mapped_column(Boolean, default=True)
     widget_token: Mapped[str] = mapped_column(String(64), unique=True, default=lambda: uuid.uuid4().hex)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

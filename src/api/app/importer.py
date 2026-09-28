@@ -38,7 +38,7 @@ from app.models import (
 )
 from app.scoring import weighted
 from app.security import UNCLAIMED
-from app.timeutil import iso
+from app.timeutil import iso, now
 
 
 class FixtureError(ValueError):
@@ -71,11 +71,20 @@ def _user(db: Session, email: str, name: str, password_hash: str, external_id: s
     email = email.strip().lower()
     user = db.query(User).filter(User.email == email).one_or_none()
     if user is None:
-        user = User(id=uuid.uuid4(), email=email, display_name=name, password_hash=password_hash, external_id=external_id)
+        user = User(
+            id=uuid.uuid4(),
+            email=email,
+            display_name=name,
+            password_hash=password_hash,
+            external_id=external_id,
+            email_verified_at=now(),
+        )
         db.add(user)
         db.flush()  # later rows look this user up by email
     elif external_id and not user.external_id:
         user.external_id = external_id
+    if user.email_verified_at is None:
+        user.email_verified_at = now()
     return user
 
 
@@ -105,11 +114,20 @@ class People:
         email = email.strip().lower()
         u = self.users.get(email)
         if u is None:
-            u = User(id=uuid.uuid4(), email=email, display_name=name, password_hash=self.password_hash, external_id=external_id)
+            u = User(
+                id=uuid.uuid4(),
+                email=email,
+                display_name=name,
+                password_hash=self.password_hash,
+                external_id=external_id,
+                email_verified_at=now(),
+            )
             self.db.add(u)
             self.users[email] = u
         elif external_id and not u.external_id:
             u.external_id = external_id
+        if u.email_verified_at is None:
+            u.email_verified_at = now()
         return u
 
     def role(self, user: User, role: str) -> EventRole:

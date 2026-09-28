@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     login_rate_limit: int = 10
     comment_rate_limit: int = 5
     open_ballots_per_ip_per_day: int = 20
+    gallery_rate_limit: int = 120
+    gallery_rate_window_seconds: int = 60
     webhook_worker: bool = True
     trust_proxy: bool = False
     max_upload_bytes: int = 5 * 1024 * 1024

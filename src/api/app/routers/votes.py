@@ -67,6 +67,8 @@ def _new_ballot(db: Session, event: Event, voter_key: str, email: str | None, co
 
 @router.post("/events/{event_id}/ballots", summary="Get (or start) a ballot in this event's access mode")
 def open_ballot(body: BallotIn, request: Request, response: Response, actor: ActorDep, db: DB):
+    if body.website.strip():
+        raise HTTPException(400, "Could not open ballot")
     event = actor.event
     ip = client_ip(request)
     enforce(f"ballot:{ip}", settings.vote_rate_limit, settings.vote_rate_window_seconds)
@@ -87,6 +89,8 @@ def open_ballot(body: BallotIn, request: Request, response: Response, actor: Act
         return _ballot_out(db, ballot, event)
     if mode == "authenticated":
         user = actor.require_login()
+        if event.require_verified_email and user.email_verified_at is None:
+            raise HTTPException(403, "Confirm your email before voting. Use the link we sent when you registered, or sign in and resend it.")
         key = f"user:{user.id}"
         ballot = db.query(Ballot).filter(Ballot.event_id == event.id, Ballot.voter_key == key).one_or_none()
         ballot = ballot or _new_ballot(db, event, key, user.email, True, ip)
