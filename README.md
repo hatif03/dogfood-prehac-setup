@@ -106,7 +106,7 @@ Use this when the portal faces real participants (not the hackathon demo seed).
 1. `cp .env.example .env` — set `SESSION_SECRET` to a long random string; set `DEMO_SESSIONS=false` so acceptance cookies are disabled.
 2. Set `PUBLIC_URL` on the API service (see `docker-compose.yml`) to the HTTPS origin people use; judge invites and voting links are built from it.
 3. Terminate TLS in front of port **8080** (Caddy, nginx, etc.). Do not expose port **8000** on the public internet.
-4. Back up Postgres volume and MinIO data before schema changes; there is no Alembic migration path yet (export JSON per event, empty DB, re-import).
+4. Back up Postgres volume and MinIO data before upgrades. On Postgres, `docker compose up` runs `alembic upgrade head` (see `src/api/alembic/`). Existing volumes created before Alembic may need `alembic stamp head` once inside the API container, or export JSON and start fresh.
 5. Run `.\scripts\verify-submission.ps1` (or `.sh`) after deploy and before freeze; keep `acceptance-report.txt` honest (7/7 official, T1+T2 verified only).
 6. Sign in as organizer → create event or `POST /v1/import` → invite judges (Organize → Judging) → set submission questions if needed (Organize → Settings).
 7. Export: Organize → Integrations → `export.json` (lossless round-trip per tests).
@@ -116,7 +116,7 @@ Demo video: follow [docs/demo-script.md](docs/demo-script.md) when you record th
 
 ## Honest limitations
 
-- **No schema migrations yet.** Tables are created at boot. To upgrade across a schema change: export each event as JSON, start the new version on an empty database, re-import. Alembic is the next step.
+- **Schema on Postgres uses Alembic; pytest still uses SQLite `create_all`.** Export JSON per event remains the safe escape hatch if a migration ever disagrees with your volume.
 - **Unit tests run on SQLite.** The pytest suite uses in-memory SQLite for speed. Both acceptance reports were produced against the full `docker compose` stack (Postgres 16, Redis, MinIO, Mailpit), so the Postgres path is exercised end to end, but not by pytest.
 - **No email verification at registration.** Authenticated voting trusts accounts; use email-gated or link voting when the popular prize matters.
 - **Leniency is additive.** A judge who uses a narrower or wider range of the scale is not modelled (JUDGING.md, Limits).

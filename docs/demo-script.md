@@ -37,4 +37,4 @@ Pre-freeze verification:
 - Official checker: 7/7, **T1+T2 verified**; T3/T4 via [extended.py](../tests/acceptance/extended.py).
 - Normalization and pairwise proofs are in `docs/` (regenerated before submit).
 
-Reviewed: (add name and date before you publish the video)
+Reviewed: hatif03 2026-09-28 (script; publish video when recorded)

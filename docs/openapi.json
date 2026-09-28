@@ -93,6 +93,65 @@
         }
       }
     },
+    "/v1/auth/verify-email/resend": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Send another confirmation email",
+        "operationId": "resend_verify_v1_auth_verify_email_resend_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/verify-email/{token}": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Confirm email from the link in your inbox",
+        "operationId": "verify_email_v1_auth_verify_email__token__post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/auth/logout": {
       "post": {
         "tags": [
@@ -3680,6 +3739,12 @@
               }
             ],
             "title": "Link Token"
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Website",
+            "default": ""
           }
         },
         "type": "object",
@@ -4000,6 +4065,17 @@
             ],
             "title": "Max Team Size"
           },
+          "require_verified_email": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Require Verified Email"
+          },
           "slug": {
             "anyOf": [
               {
@@ -4249,6 +4325,17 @@
               }
             ],
             "title": "Max Team Size"
+          },
+          "require_verified_email": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Require Verified Email"
           }
         },
         "type": "object",
@@ -4517,6 +4604,12 @@
             "maxLength": 200,
             "minLength": 1,
             "title": "Display Name"
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Website",
+            "default": ""
           }
         },
         "type": "object",

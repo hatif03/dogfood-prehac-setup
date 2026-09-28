@@ -1,5 +1,7 @@
 # Judging
 
+Reviewed: hatif03 2026-09-28
+
 How projects get to judges, how a review becomes a number, how numbers from lenient and harsh judges are made comparable, and how the final ranking is produced. Every step here is code you can run: `src/api/app/judging_math.py` (pure functions, no database), `src/api/app/assignment.py`, `src/api/app/scoring.py`.
 
 The numbers on the real fixture, plus a simulation study, are in [docs/normalization-proof.md](docs/normalization-proof.md): every review raw and normalized, rank changes, an exact-solution check, bootstrap rank intervals and a leave-one-judge-out analysis.
