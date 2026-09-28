@@ -1,0 +1,7 @@
+# Production-oriented overlay. Default compose stays checker-friendly (DEMO_SESSIONS=true).
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+services:
+  api:
+    environment:
+      DEMO_SESSIONS: "false"
+    # Set SESSION_SECRET in .env before using this overlay.
