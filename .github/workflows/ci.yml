@@ -35,5 +35,37 @@ jobs:
       - run: python3 spec/run.py .dogfood.toml | tee acceptance-report.txt
       - run: python3 tests/acceptance/extended.py .dogfood.toml --webhook-host 172.17.0.1 | tee acceptance-report-extended.txt
       - run: grep -q "verified T1 T2" acceptance-report.txt
+      - run: pip install -r src/api/requirements.txt
+      - run: pytest tests/api/test_acceptance_paths.py -q
       - if: always()
         run: docker compose logs api | tail -100
+  postgres-api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal
+          POSTGRES_DB: portal
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portal"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI_POSTGRES: "1"
+      DATABASE_URL: postgresql+psycopg://portal:portal@localhost:5432/portal
+      SEED_ON_BOOT: "false"
+      MINIO_ENDPOINT: ""
+      WEBHOOK_WORKER: "false"
+      REDIS_URL: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r src/api/requirements.txt
+      - run: pytest tests/api/test_voting.py tests/api/test_deadline.py -q --tb=line

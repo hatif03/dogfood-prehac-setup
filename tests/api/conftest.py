@@ -1,17 +1,25 @@
 import os
 import tempfile
 
-os.environ.update(
-    DATABASE_URL="sqlite+pysqlite:///:memory:",
-    SEED_ON_BOOT="false",
-    MINIO_ENDPOINT="",
-    SMTP_PORT="1",
-    WEBHOOK_WORKER="false",
-    REDIS_URL="",
-    SIGNING_KEY_PATH=os.path.join(tempfile.mkdtemp(), "ed25519.pem"),
-)
+if os.environ.get("CI_POSTGRES") != "1":
+    os.environ.update(
+        DATABASE_URL="sqlite+pysqlite:///:memory:",
+        SEED_ON_BOOT="false",
+        MINIO_ENDPOINT="",
+        SMTP_PORT="1",
+        WEBHOOK_WORKER="false",
+        REDIS_URL="",
+        SIGNING_KEY_PATH=os.path.join(tempfile.mkdtemp(), "ed25519.pem"),
+    )
+else:
+    os.environ.setdefault("SEED_ON_BOOT", "false")
+    os.environ.setdefault("MINIO_ENDPOINT", "")
+    os.environ.setdefault("WEBHOOK_WORKER", "false")
+    os.environ.setdefault("REDIS_URL", "")
+    os.environ.setdefault("SIGNING_KEY_PATH", os.path.join(tempfile.mkdtemp(), "ed25519.pem"))
 
 import logging  # noqa: E402
+import re  # noqa: E402
 from datetime import UTC, datetime, timedelta  # noqa: E402
 
 import pytest  # noqa: E402
@@ -25,6 +33,19 @@ from app.seed import DEMO_TOKENS, seed_if_empty  # noqa: E402
 
 PW = "password1"
 logging.getLogger("httpx").setLevel(logging.WARNING)
+_MAIL_BODY: list[str] = []
+
+
+@pytest.fixture(autouse=True)
+def _capture_mail(monkeypatch):
+    from app import mailer
+
+    _MAIL_BODY.clear()
+
+    def _send(to, subject, body):
+        _MAIL_BODY.append(body)
+
+    monkeypatch.setattr(mailer, "send_mail", _send)
 
 
 def reset_db():
@@ -54,9 +75,19 @@ def as_(token_role: str) -> dict:
     return {"Cookie": f"portal_session={DEMO_TOKENS[token_role]}"}
 
 
-def register(client, email, name=None):
+def confirm_email(client) -> None:
+    for body in reversed(_MAIL_BODY):
+        m = re.search(r"verify-email\?token=([\w-]+)", body)
+        if m:
+            assert client.post(f"/v1/auth/verify-email/{m.group(1)}").status_code == 200
+            return
+
+
+def register(client, email, name=None, verify=True):
     r = client.post("/v1/auth/register", json={"email": email, "password": PW, "display_name": name or email.split("@")[0]})
     assert r.status_code == 200, r.text
+    if verify:
+        confirm_email(client)
 
 
 def login(client, email, password=PW):
