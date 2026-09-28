@@ -170,10 +170,25 @@ def main():
         o1 = [p["id"] for p in (js(request(f"{base}/v1/ballots/{t1[0]}")[1]) or {}).get("projects", [])]
         o2 = [p["id"] for p in (js(request(f"{base}/v1/ballots/{t2[0]}")[1]) or {}).get("projects", [])]
         c.ok(o1 and sorted(o1) == sorted(o2) and o1 != o2, "two ballots came back in the same order")
-        c2 = check("T3", "one vote per person; changing a vote moves it")
-        s, _ = request(f"{base}/v1/ballots/{t1[0]}/votes", method="POST", body={"submission_id": o1[0]})
-        s, t = request(f"{base}/v1/ballots/{t1[0]}/votes", method="POST", body={"submission_id": o1[1]})
-        c2.ok(s == 200 and (js(t) or {}).get("votes") == {o1[1]: 1}, f"second vote -> {s} {t[:120]}")
+        c2 = check("T3", "ballot enforces vote mode (1p1v moves vote, quadratic enforces credit budget)")
+        ballot0 = js(request(f"{base}/v1/ballots/{t1[0]}")[1]) or {}
+        mode = ballot0.get("vote_mode", "one_person_one_vote")
+        if mode == "quadratic":
+            s, _ = request(
+                f"{base}/v1/ballots/{t1[0]}/votes",
+                method="POST",
+                body={"submission_id": o1[0], "units": 3},
+            )
+            over = request(
+                f"{base}/v1/ballots/{t1[0]}/votes",
+                method="POST",
+                body={"submission_id": o1[1], "units": 5},
+            )
+            c2.ok(s == 200 and over[0] == 422, f"quadratic overspend -> {over[0]} {over[1][:120]}")
+        else:
+            s, _ = request(f"{base}/v1/ballots/{t1[0]}/votes", method="POST", body={"submission_id": o1[0]})
+            s, t = request(f"{base}/v1/ballots/{t1[0]}/votes", method="POST", body={"submission_id": o1[1]})
+            c2.ok(s == 200 and (js(t) or {}).get("votes") == {o1[1]: 1}, f"second vote -> {s} {t[:120]}")
 
     c = check("T3", "duplicate submission detected and kept out of the gallery")
     s, t = request(f"{E}/projects")

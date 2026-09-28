@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.audit import audit
 from app.config import settings
 from app.importer import import_fixture
-from app.models import Criterion, Event, EventRole, Prize, Rubric, Session as AuthSession, Track, User
+from app.models import Criterion, Event, EventRole, Prize, Rubric, Session as AuthSession, Track, User, VoteMode
 from app.scoring import run_normalization
 from app.security import hash_password, hash_token, session_expiry
 from app.timeutil import now
@@ -72,6 +72,8 @@ def _seed(db: Session) -> None:
         # Demo configuration, not fixture data: open a community vote so T3 is visible on boot.
         event.tagline = "The official Dogfood 2026 fixture: 41 submissions (one a duplicate), 30 judges, 8 tracks"
         event.voting_access = "email_gated"
+        event.vote_mode = VoteMode.quadratic.value
+        event.quadratic_budget = 25
         event.voting_opens_at = now() - timedelta(days=1)
         event.voting_closes_at = now() + timedelta(days=14)
         run_normalization(db, event, organizer)
@@ -93,7 +95,8 @@ def _playground(db: Session, organizer: User) -> None:
         submissions_deadline=now() + timedelta(days=14),
         judging_deadline=now() + timedelta(days=21),
         voting_access="authenticated",
-        vote_mode="quadratic",
+        vote_mode=VoteMode.quadratic.value,
+        quadratic_budget=25,
         reviews_per_project=2,
     )
     db.add(event)
