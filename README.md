@@ -2,7 +2,7 @@
 
 **A self-hosted hackathon submission and judging platform.** Weighted rubrics, a documented and tested correction for lenient and harsh judges, role isolation enforced in the API, community voting that is hard to game, and a hash-chained audit log. It runs from one `docker compose up` with the network off.
 
-Built for [Dogfood 2026](https://dogfoodhack.com/). MIT licensed.
+Built for [Dogfood 2026](https://dogfoodhack.com/). MIT licensed. The web UI uses a dark-default, [Hackathon Raptors](https://www.raptors.dev/)-inspired editorial theme ([context/design-tokens-raptors.md](context/design-tokens-raptors.md)).
 
 | | |
 | --- | --- |
@@ -20,20 +20,45 @@ Built for [Dogfood 2026](https://dogfoodhack.com/). MIT licensed.
 docker compose up --build
 ```
 
-First build needs the network (images and packages). After that, nothing does.
+Wait until all services are healthy (or use `docker compose up --build -d --wait`). First build needs the network (images and packages). After that, nothing does.
 
 | What | Where |
 | --- | --- |
-| Portal | http://localhost:8080 |
+| Portal (UI) | http://localhost:8080 |
 | API docs (OpenAPI, try-it-out) | http://localhost:8080/docs |
-| Mail inbox (judge invites, voting links) | http://localhost:8025 |
-| API directly, for curl | http://localhost:8000 |
+| Mailpit (verify-email, voting links) | http://localhost:8025 |
+| API directly (curl) | http://localhost:8000 |
+
+### Demo and recording
+
+Full shot list: [docs/demo-script.md](docs/demo-script.md). Pre-freeze gate:
+
+```powershell
+.\scripts\verify-submission.ps1
+```
+
+```bash
+./scripts/verify-submission.sh
+```
+
+| Page | URL |
+| --- | --- |
+| Home / your work | http://localhost:8080 |
+| Sign in (one-click demo accounts) | http://localhost:8080/login |
+| **Sample Hack 2026** (official fixture) | http://localhost:8080/events/sample-hack-2026 |
+| Organizer console | http://localhost:8080/events/sample-hack-2026/organize |
+| **Playground** (open lifecycle, synthetic) | http://localhost:8080/events/playground |
+| Verify signed records | http://localhost:8080/verify |
+| Create event wizard | http://localhost:8080/events/new |
+
+The UI defaults to **dark** theme on first visit; use the sun/moon control in the header to switch. Theme choice is stored in `localStorage` (`portal-theme`).
 
 On boot the API prints the demo session headers the acceptance checker uses:
 
 ```text
 seeded. test logins (password for every seeded account: password):
   organizer    Cookie: portal_session=demo_org_7f2a9c41    (organizer@portal.local)
+  admin        Cookie: portal_session=demo_adm_c0ffee    (admin@portal.local)
   judge_a      Cookie: portal_session=demo_jdg_a_91bc07    (diego.herrera@example.org)
   judge_b      Cookie: portal_session=demo_jdg_b_44de3e    (iva.petrova@example.org)
   participant  Cookie: portal_session=demo_prt_2e88f1      (priya1@example.org)
@@ -97,7 +122,7 @@ Every seeded account's password is `password`. The sign-in page has one-click bu
 
 **Pairwise mode.** Judges compare two projects at a time. The ranking is Crowd-BT fitted by EM, so each judge's reliability is estimated and random or contrarian judges stop counting. Gavel's pairing rule is implemented and measured as a baseline ([docs/pairwise.md](docs/pairwise.md)).
 
-**Interface.** Built on Radix Themes and Primitives, light and dark. Signing in lands on "Your work": each event you belong to, your role in it and the one next step. Organizers get a lifecycle rail (setup → submissions → judging → voting → results → archive) with the next action on it. Each view has one primary action. Motion follows Amicro's rules: short entrances, feedback on every action, nothing moving on its own while you work, and reduced motion respected. axe-core reports no serious or critical violations on any screen in either theme, and nothing scrolls sideways at 390 px.
+**Interface.** Built on Radix Themes and Primitives; dark by default with a light/dark toggle. Signing in lands on "Your work": each event you belong to, your role in it and the one next step. Organizers get a lifecycle rail (setup → submissions → judging → voting → results → archive) with the next action on it. Each view has one primary action. Motion follows Amicro's rules: short entrances, feedback on every action, nothing moving on its own while you work, and reduced motion respected. axe-core reports no serious or critical violations on any screen in either theme, and nothing scrolls sideways at 390 px.
 
 ## Production checklist
 
@@ -118,7 +143,7 @@ Demo video: follow [docs/demo-script.md](docs/demo-script.md) when you record th
 
 - **Schema on Postgres uses Alembic; pytest still uses SQLite `create_all`.** Export JSON per event remains the safe escape hatch if a migration ever disagrees with your volume.
 - **Unit tests run on SQLite.** The pytest suite uses in-memory SQLite for speed. Both acceptance reports were produced against the full `docker compose` stack (Postgres 16, Redis, MinIO, Mailpit), so the Postgres path is exercised end to end, but not by pytest.
-- **No email verification at registration.** Authenticated voting trusts accounts; use email-gated or link voting when the popular prize matters.
+- **Email verification is local-mail only** (Mailpit). It reduces casual double accounts; use email-gated voting when the popular prize matters.
 - **Leniency is additive.** A judge who uses a narrower or wider range of the scale is not modelled (JUDGING.md, Limits).
 - **One host.** The API runs several workers on one machine (`API_WORKERS`, default 4), coordinated through Postgres and Redis. Running several API containers works for requests, but each runs a webhook poller; deliveries are claimed with `SKIP LOCKED`, so they are not duplicated.
 - **Demo sessions** are on by default so the checker works. Turn them off for real use (above).
