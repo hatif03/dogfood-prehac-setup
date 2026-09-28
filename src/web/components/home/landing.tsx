@@ -12,7 +12,6 @@ const VALUES = [
   ["Runs offline from one docker compose up.", "No accounts, no hosted services, nothing to sign up for."],
 ] as const;
 
-// Two masks, intersected: fade the art into the page toward the text (left) and toward the content below.
 const MASK: React.CSSProperties = {
   maskImage: "linear-gradient(to right, transparent 0%, #000 55%), linear-gradient(to top, transparent 0%, #000 35%)",
   maskComposite: "intersect",
@@ -24,27 +23,27 @@ const MASK_MOBILE: React.CSSProperties = {
   WebkitMaskImage: "linear-gradient(to top, transparent 5%, #000 60%)",
 };
 
-/** Signed-out hero: the raptor bleeds in from the right (top on phones), the copy sits on the faded side. */
 export function LandingHero() {
   return (
-    <section className="relative isolate overflow-hidden border-b border-line">
-      <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-72 opacity-70 md:hidden">
-        <DinoArt sizes="100vw" priority className="h-full w-full object-[70%_30%]" style={MASK_MOBILE} />
+    <section className="relative isolate overflow-hidden border-b border-line bg-surface">
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_70%_20%,var(--accent-a3),transparent_55%)]" />
+      <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-72 md:hidden">
+        <DinoArt sizes="100vw" priority className="dino-grade h-full w-full object-[70%_30%] opacity-75" style={MASK_MOBILE} />
       </div>
       <div aria-hidden className="absolute inset-y-0 right-0 -z-10 hidden w-[68%] md:block">
-        <DinoArt sizes="68vw" priority className="h-full w-full object-[60%_35%] opacity-90 dark:opacity-80" style={MASK} />
+        <DinoArt sizes="68vw" priority className="dino-grade h-full w-full object-[60%_35%] opacity-85" style={MASK} />
       </div>
 
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 pt-48 pb-14 sm:px-6 md:pt-24 md:pb-24">
-        <p className="text-sm font-medium text-muted">Dogfood 2026 · self-hosted judging portal</p>
-        <h1 className="max-w-xl text-5xl font-semibold tracking-tighter text-balance sm:text-6xl">
+        <p className="section-index">01 · Dogfood 2026</p>
+        <h1 className="font-display max-w-xl text-5xl font-semibold tracking-tighter text-balance sm:text-6xl">
           <TextReveal text={"Judging you\ncan defend."} />
         </h1>
         <div className="flex animate-page-in flex-col gap-4 [animation-delay:250ms]">
           <ul className="flex max-w-xl flex-col gap-3">
             {VALUES.map(([lead, rest]) => (
               <li key={lead} className="flex gap-3">
-                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
+                <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-line-strong" />
                 <p className="text-muted">
                   <strong className="font-medium text-fg">{lead}</strong> {rest}
                 </p>

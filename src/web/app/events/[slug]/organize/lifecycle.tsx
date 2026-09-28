@@ -92,7 +92,13 @@ export function LifecycleRail({ dash, run, go }: ConsoleCtx) {
         </span>
         <span aria-hidden className="ml-auto flex gap-1">
           {STAGES.map((s, i) => (
-            <span key={s} className={cn("h-1.5 w-4 rounded-full", i < stage || (i === stage && event.archived) ? "bg-accent-11/60" : i === stage ? "bg-accent" : "bg-tint-strong")} />
+            <span
+              key={s}
+              className={cn(
+                "h-1.5 w-4 rounded-full",
+                i === stage && !event.archived ? "bg-accent" : i < stage || (i === stage && event.archived) ? "bg-line-strong" : "bg-tint-strong",
+              )}
+            />
           ))}
         </span>
       </div>
@@ -104,7 +110,7 @@ export function LifecycleRail({ dash, run, go }: ConsoleCtx) {
 function StepMark({ state }: { state: "done" | "current" | "next" | "skipped" }) {
   if (state === "done")
     return (
-      <span aria-hidden className="grid size-4 place-items-center rounded-full bg-accent-11/15 text-accent-11">
+      <span aria-hidden className="grid size-4 place-items-center rounded-full bg-tint-strong text-muted">
         <Check className="size-3" strokeWidth={3} />
       </span>
     );

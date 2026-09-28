@@ -1,7 +1,7 @@
 import { Avatar as RadixAvatar } from "@radix-ui/themes";
 import { hashString } from "@/lib/utils";
 
-const COLORS = ["lime", "cyan", "violet", "amber", "tomato"] as const;
+const COLORS = ["amber", "cyan", "violet", "gray", "tomato"] as const;
 const SIZES = { sm: "1", md: "2", lg: "3" } as const;
 
 function initials(name: string) {

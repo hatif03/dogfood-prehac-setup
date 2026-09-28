@@ -1,6 +1,7 @@
 "use client";
 
-import { IconButton, Theme } from "@radix-ui/themes";
+import { IconButton } from "@radix-ui/themes";
+import { PortalThemeSubtree } from "@/components/theme-provider";
 import { LayoutList, LogOut, Menu, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -31,7 +32,7 @@ function navItems(pathname: string, signedIn: boolean): NavItem[] {
 function NavLink({ item, onNavigate, className }: { item: NavItem; onNavigate?: () => void; className?: string }) {
   const cls = cn(
     "rounded-(--radius-2) px-3 py-1.5 text-sm font-medium transition-colors",
-    item.active ? "bg-tint-strong text-fg" : "text-muted hover:bg-tint hover:text-fg",
+    item.active ? "bg-surface-2 text-fg" : "text-muted hover:bg-tint hover:text-fg",
     className,
   );
   return item.external ? (
@@ -101,11 +102,11 @@ function MobileMenu({ items, user, pathname, onSignOut }: { items: NavItem[]; us
         </IconButton>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Theme accentColor="lime" grayColor="olive" radius="medium">
+        <PortalThemeSubtree>
           <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/40 data-[state=open]:animate-page-in" />
           <Dialog.Content className="fixed inset-y-0 right-0 z-[101] flex w-[min(20rem,85vw)] flex-col gap-1 bg-(--color-panel-solid) p-4 shadow-(--shadow-6) data-[state=open]:animate-page-in">
             <div className="mb-3 flex items-center justify-between">
-              <Dialog.Title className="text-sm font-medium text-muted">Menu</Dialog.Title>
+              <Dialog.Title className="section-index">Menu</Dialog.Title>
               <Dialog.Close asChild>
                 <IconButton variant="ghost" color="gray" size="2" aria-label="Close menu" className="m-0 cursor-pointer">
                   <X className="size-5" />
@@ -141,7 +142,7 @@ function MobileMenu({ items, user, pathname, onSignOut }: { items: NavItem[]; us
               )}
             </div>
           </Dialog.Content>
-        </Theme>
+        </PortalThemeSubtree>
       </Dialog.Portal>
     </Dialog.Root>
   );
@@ -162,7 +163,7 @@ export function SiteHeader() {
 
   const items = navItems(pathname, Boolean(user));
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 border-b border-line bg-bg/90 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 sm:px-6">
         <Logo />
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">

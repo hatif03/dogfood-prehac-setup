@@ -45,7 +45,7 @@ function EventsSection({ events, signedIn }: { events: EventSummary[] | null; si
   return (
     <section id="events" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-12 sm:px-6" aria-labelledby="events-heading">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <h2 id="events-heading" className="text-2xl font-semibold tracking-tight">
+        <h2 id="events-heading" className="font-display text-2xl font-semibold tracking-tight">
           {signedIn ? "All events" : "Events on this portal"}
         </h2>
         <Button href="/events/new" variant="secondary">
@@ -71,7 +71,8 @@ export default async function HomePage() {
         <EventsSection events={events} signedIn={false} />
         <section className="border-t border-line" aria-labelledby="how-heading">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-            <h2 id="how-heading" className="text-2xl font-semibold tracking-tight">
+            <p className="section-index">02 · Integrity</p>
+            <h2 id="how-heading" className="font-display text-2xl font-semibold tracking-tight">
               How judging works
             </h2>
             <p className="mt-2 max-w-2xl text-muted">Four checks between a score and a winner. The API enforces each one, so a fork keeps the same guarantees.</p>
@@ -85,7 +86,7 @@ export default async function HomePage() {
   return (
     <>
       <section className="mx-auto max-w-7xl px-4 pt-10 pb-4 sm:px-6" aria-labelledby="work-heading">
-        <h1 id="work-heading" className="text-3xl font-semibold tracking-tight">
+        <h1 id="work-heading" className="font-display text-3xl font-semibold tracking-tight">
           Your work
         </h1>
         <p className="mt-1 text-muted">The next step in every event you are part of.</p>

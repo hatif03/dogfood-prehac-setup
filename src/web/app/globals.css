@@ -41,7 +41,7 @@
   --color-amber-11: var(--amber-11);
 
   --shadow-card: var(--shadow-2);
-  --shadow-glow: 0 0 0 1px var(--accent-a7), 0 8px 24px -10px var(--accent-a8);
+  --shadow-glow: 0 0 0 1px var(--accent-a6), 0 12px 32px -16px var(--accent-a7);
 }
 
 @theme {
@@ -71,8 +71,35 @@
 
 .radix-themes {
   --default-font-family: var(--font-sans);
-  --heading-font-family: var(--font-sans);
+  --heading-font-family: var(--font-display), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --code-font-family: var(--font-mono);
+}
+
+@utility font-display {
+  font-family: var(--font-display), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@utility section-index {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-subtle);
+}
+
+/* Warm grade for dinosaur hero on dark editorial backgrounds */
+@utility dino-grade {
+  filter: saturate(0.88) contrast(1.06) hue-rotate(-6deg);
+}
+
+@utility marquee {
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 @layer base {
@@ -126,5 +153,8 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  .marquee {
+    animation: none !important;
   }
 }

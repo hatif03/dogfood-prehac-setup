@@ -10,7 +10,10 @@ export function EventCard({ event: e }: { event: EventSummary }) {
   const phase = PHASE[e.phase];
   const deadline = phaseDeadline(e);
   return (
-    <Card asChild className="flex h-full flex-col gap-3 p-5">
+    <Card
+      asChild
+      className="flex h-full flex-col gap-3 border-line p-5 transition-[box-shadow,transform] duration-200 ease-out-expo hover:-translate-y-0.5 hover:shadow-(--shadow-4)"
+    >
       <Link href={`/events/${e.slug}`}>
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={phase.tone} dot>
@@ -19,7 +22,7 @@ export function EventCard({ event: e }: { event: EventSummary }) {
           <Badge>{e.external_id ? `fixture ${e.external_id}` : "synthetic"}</Badge>
         </div>
         <div>
-          <h3 className="text-lg font-semibold tracking-tight text-fg">{e.name}</h3>
+          <h3 className="font-display text-xl font-semibold tracking-tight text-fg">{e.name}</h3>
           {e.tagline && <p className="mt-1 text-sm leading-relaxed text-muted">{e.tagline}</p>}
         </div>
         <p className="text-sm text-muted">

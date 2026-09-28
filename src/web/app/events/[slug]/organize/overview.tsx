@@ -347,7 +347,7 @@ function Coverage({ coverage }: { coverage: Dash["coverage"] }) {
             <div key={b.reviews} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
               <span className={cn("font-mono text-xs tabular-nums", b.projects ? "text-fg" : "text-subtle")}>{b.projects}</span>
               <div
-                className={cn("w-full max-w-12 rounded-t-(--radius-1)", b.projects === 0 ? "bg-tint-strong" : b.reviews < coverage.target ? "bg-amber" : "bg-accent")}
+                className={cn("w-full max-w-12 rounded-t-(--radius-1)", b.projects === 0 ? "bg-tint-strong" : b.reviews < coverage.target ? "bg-amber" : "bg-cyan")}
                 style={{ height: `${b.projects ? Math.max(4, (b.projects / peak) * 80) : 1}%` }}
               />
             </div>

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export type BadgeTone = "neutral" | "accent" | "cyan" | "violet" | "coral" | "amber";
 
-// `accent` follows the Theme accent (lime): positive state only.
+// `accent` follows the Theme accent: positive state only.
 const COLORS = { neutral: "gray", accent: undefined, cyan: "cyan", violet: "violet", coral: "tomato", amber: "amber" } as const;
 
 type BadgeProps = Omit<React.ComponentProps<typeof RadixBadge>, "color"> & {

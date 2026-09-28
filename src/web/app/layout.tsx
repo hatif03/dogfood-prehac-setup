@@ -1,9 +1,16 @@
 import "./globals.css";
-import { Theme } from "@radix-ui/themes";
 import type { Metadata, Viewport } from "next";
+import { Syne } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
+
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
 import { Providers } from "@/components/providers";
+import { PortalTheme } from "@/components/theme-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { THEME_SCRIPT } from "@/lib/theme";
@@ -18,20 +25,20 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: "light dark",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fcfdfc" },
-    { media: "(prefers-color-scheme: dark)", color: "#111210" },
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0b" },
   ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${syne.variable}`} suppressHydrationWarning>
       <head>
         {/* Sets .light/.dark before first paint so there is no flash; see lib/theme.ts. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
-        <Theme accentColor="lime" grayColor="olive" radius="medium" panelBackground="translucent" className="flex min-h-dvh flex-col">
+        <PortalTheme className="flex min-h-dvh flex-col">
           <Providers>
             <a
               href="#main"
@@ -45,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </main>
             <SiteFooter />
           </Providers>
-        </Theme>
+        </PortalTheme>
       </body>
     </html>
   );

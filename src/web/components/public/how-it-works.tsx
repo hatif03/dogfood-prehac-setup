@@ -143,7 +143,7 @@ export function HowItWorks({ className }: { className?: string }) {
               <span className="font-mono text-xs text-subtle">0{i + 1}</span>
             </div>
             <div>
-              <h3 className="font-semibold tracking-tight text-fg">{s.title}</h3>
+              <h3 className="font-display font-semibold tracking-tight text-fg">{s.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-muted">{s.body}</p>
             </div>
             <div className="mt-auto">{s.visual}</div>

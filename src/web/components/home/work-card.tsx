@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import type { WorkItem } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
-/** `todo` marks work waiting on this person: only then is the action the primary (lime) button. */
+/** `todo` marks work waiting on this person: only then is the action the primary button. */
 type NextAction = { status: string; label: string; href: string; todo: boolean; progress?: number; done?: boolean };
 
 const pct = (n: number, of: number) => (of ? (n / of) * 100 : 0);
