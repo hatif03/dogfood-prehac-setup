@@ -7,6 +7,8 @@ from app.deps import DB, ActorDep, CurrentUser, RequiredUser, actor_for, client_
 from app.importer import slugify, unique_slug
 from app.models import (
     Criterion,
+    CustomAnswer,
+    CustomQuestion,
     Event,
     EventRole,
     JudgeTrack,
@@ -18,7 +20,7 @@ from app.models import (
     User,
 )
 from app.rbac import Actor
-from app.schemas import ArchiveIn, CriterionIn, EventCreate, EventFields, PrizeIn, PublishIn, RoleIn, RubricIn, TrackIn
+from app.schemas import ArchiveIn, CriterionIn, EventCreate, EventFields, PrizeIn, PublishIn, QuestionIn, RoleIn, RubricIn, TrackIn
 from app.scoring import recompute_weighted
 from app.timeutil import ensure_utc
 from app.views import event_detail, event_summary, rubric_out, voting_open
@@ -182,6 +184,31 @@ def put_prizes(body: list[PrizeIn], actor: ActorDep, db: DB):
     db.commit()
     db.refresh(actor.event)
     return event_detail(db, actor.event, actor)["prizes"]
+
+
+def _replace_questions(db, event: Event, questions: list[QuestionIn]) -> None:
+    keep = {q.id for q in questions if q.id}
+    for row in list(event.questions):
+        if row.id not in keep:
+            db.query(CustomAnswer).filter(CustomAnswer.question_id == row.id).delete()
+            db.delete(row)
+    existing = {q.id: q for q in event.questions}
+    for i, q in enumerate(questions):
+        if q.id and q.id in existing:
+            row = existing[q.id]
+            row.prompt, row.required, row.sort_order = q.prompt, q.required, i
+        else:
+            db.add(CustomQuestion(event_id=event.id, prompt=q.prompt, required=q.required, sort_order=i))
+
+
+@router.put("/{event_id}/questions", summary="Replace custom submission questions (organizer)")
+def put_questions(body: list[QuestionIn], actor: ActorDep, db: DB):
+    user = actor.require_organizer()
+    _replace_questions(db, actor.event, body)
+    audit(db, action="event.questions", summary=f"{user.display_name} edited submission questions", actor=user, event_id=actor.event.id)
+    db.commit()
+    db.refresh(actor.event)
+    return event_detail(db, actor.event, actor)["questions"]
 
 
 @router.get("/{event_id}/rubric", summary="Criteria, weights and scale (public)")

@@ -44,6 +44,8 @@ const toDraft = (s: Submission | null): Draft => ({
   tech_tags: s?.tech_tags ?? [],
 });
 
+const answersOf = (s: Submission | null) => Object.fromEntries((s?.answers ?? []).map((a) => [a.question_id, a.body]));
+
 const ago = (t: string | number) => (Math.abs(Date.now() - new Date(t).getTime()) < 10_000 ? "just now" : relativeTime(t));
 
 /** Pydantic 422 bodies carry `loc: ["body", "<field>"]`; map them onto the form. */
@@ -82,6 +84,7 @@ export function SubmissionEditor({ team }: { team: Team }) {
 
   const [sub, setSub] = useState<Submission | null>(team.submission);
   const [draft, setDraft] = useState<Draft>(() => toDraft(team.submission));
+  const [answers, setAnswers] = useState<Record<string, string>>(() => answersOf(team.submission));
   const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
   const [save, setSave] = useState<SaveState>(
     team.submission?.updated_at ? { status: "saved", at: new Date(team.submission.updated_at).getTime() } : { status: "idle" },
@@ -91,6 +94,8 @@ export function SubmissionEditor({ team }: { team: Team }) {
 
   const draftRef = useRef(draft);
   draftRef.current = draft;
+  const answersRef = useRef(answers);
+  answersRef.current = answers;
   const dirty = useRef(false);
   const queue = useRef<Promise<Submission | null>>(Promise.resolve(null));
 
@@ -120,7 +125,11 @@ export function SubmissionEditor({ team }: { team: Team }) {
       try {
         const saved = await api<Submission>(`${base}/projects`, {
           method: "POST",
-          body: json({ ...body, track_id: body.track_id || null }),
+          body: json({
+            ...body,
+            track_id: body.track_id || null,
+            answers: Object.entries(answersRef.current).map(([question_id, body]) => ({ question_id, body })),
+          }),
         });
         if (draftRef.current === body) dirty.current = false;
         setSub(saved);
@@ -140,7 +149,7 @@ export function SubmissionEditor({ team }: { team: Team }) {
     if (!dirty.current || locked) return;
     const t = setTimeout(() => dirty.current && void persist(), 1200);
     return () => clearTimeout(t);
-  }, [draft, locked, persist]);
+  }, [draft, answers, locked, persist]);
 
   function update<K extends keyof Draft>(key: K, value: Draft[K]) {
     dirty.current = true;
@@ -153,6 +162,9 @@ export function SubmissionEditor({ team }: { team: Team }) {
     if (!draft.title.trim()) missing.title = "A title is required to submit.";
     if (!draft.summary.trim()) missing.summary = "A one-line summary is required to submit.";
     if (event.tracks.length && !draft.track_id) missing.track_id = "Pick a track to submit.";
+    for (const q of event.questions ?? []) {
+      if (q.required && !answers[q.id]?.trim()) missing[`q-${q.id}`] = `Answer: ${q.prompt}`;
+    }
     if (Object.keys(missing).length) {
       setErrors(missing);
       toast.error("Almost there", "Fill in the highlighted fields before submitting.");
@@ -267,6 +279,26 @@ export function SubmissionEditor({ team }: { team: Team }) {
             </Field>
           )}
         </Section>
+
+        {(event.questions?.length ?? 0) > 0 && (
+          <Section title="Organizer questions" hint="Answers save with your draft.">
+            {(event.questions ?? []).map((q) => (
+              <Field key={q.id} label={q.prompt} required={q.required} error={errors[`q-${q.id}`]}>
+                <Textarea
+                  value={answers[q.id] ?? ""}
+                  onChange={(e) => {
+                    dirty.current = true;
+                    setAnswers((a) => ({ ...a, [q.id]: e.target.value }));
+                    setErrors((er) => ({ ...er, [`q-${q.id}`]: undefined }));
+                  }}
+                  rows={3}
+                  maxLength={5000}
+                  disabled={locked}
+                />
+              </Field>
+            ))}
+          </Section>
+        )}
 
         <Section title="Links" hint="Judges open these to try the project. All optional.">
           <Field label="Source code" error={errors.repo_url}>

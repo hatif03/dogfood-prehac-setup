@@ -93,6 +93,10 @@ def event_detail(db: Session, event: Event, actor: Actor) -> dict:
                 for p in event.prizes
             ],
             "rubric": rubric_out(event),
+            "questions": [
+                {"id": str(q.id), "prompt": q.prompt, "required": q.required, "sort_order": q.sort_order}
+                for q in event.questions
+            ],
             "viewer": {
                 "authenticated": actor.user is not None,
                 "role": actor.role,

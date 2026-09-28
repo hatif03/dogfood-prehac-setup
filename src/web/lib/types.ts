@@ -7,6 +7,7 @@ export type Track = { id: string; slug: string; name: string; description?: stri
 export type Prize = { id: string; name: string; description: string; track_id: string | null };
 export type Criterion = { id: string; key: string; name: string; description: string; weight: number };
 export type Rubric = { id: string; name: string; scale_min: number; scale_max: number; criteria: Criterion[] };
+export type CustomQuestion = { id: string; prompt: string; required: boolean; sort_order: number };
 
 export type EventSummary = {
   id: string;
@@ -41,6 +42,7 @@ export type EventDetail = EventSummary & {
   tracks: Track[];
   prizes: Prize[];
   rubric: Rubric | null;
+  questions: CustomQuestion[];
   viewer: { authenticated: boolean; role: Role; track_ids: string[]; team_id: string | null };
   widget_token?: string; // organizers only
 };

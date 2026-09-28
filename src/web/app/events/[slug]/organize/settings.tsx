@@ -54,6 +54,7 @@ export function SettingsTab() {
         <Tracks saver={saver} />
         <Prizes saver={saver} />
       </div>
+      <Questions saver={saver} />
       <DangerZone />
     </div>
   );
@@ -264,6 +265,65 @@ function Prizes({ saver }: { saver: Saver }) {
         <Plus /> Add prize
       </Button>
       <SaveBar saver={saver} k="prizes" dirty={dirty} disabled={rows.some((r) => !r.name.trim())} onSave={submit} onReset={() => setRows(prizesOf(event))} label="Save prizes" />
+    </Section>
+  );
+}
+
+type QuestionRow = { uid: string; prompt: string; required: boolean };
+const questionsOf = (e: EventDetail): QuestionRow[] =>
+  (e.questions ?? []).map((q) => ({ uid: q.id, prompt: q.prompt, required: q.required }));
+
+function Questions({ saver }: { saver: Saver }) {
+  const { event } = useEvent();
+  const [rows, setRows] = useState(() => questionsOf(event));
+  const dirty = JSON.stringify(rows) !== JSON.stringify(questionsOf(event));
+  const patch = (uid: string, p: Partial<QuestionRow>) => setRows((rs) => rs.map((r) => (r.uid === uid ? { ...r, ...p } : r)));
+
+  async function submit() {
+    const next = await saver.save(
+      "questions",
+      () =>
+        api(`/v1/events/${event.slug}/questions`, {
+          method: "PUT",
+          body: json(
+            rows.map((r) => ({
+              ...(r.uid.startsWith("new-") ? {} : { id: r.uid }),
+              prompt: r.prompt.trim(),
+              required: r.required,
+            })),
+          ),
+        }),
+      "Questions saved",
+    );
+    if (next) setRows(questionsOf(next));
+  }
+
+  return (
+    <Section title="Submission questions" description="Extra prompts on the submit form. Required ones block submit until answered.">
+      <Rows
+        rows={rows.map((r) => ({ ...r, name: r.prompt.slice(0, 40) || "Question" }))}
+        noun="question"
+        onRemove={(uid) => setRows((rs) => rs.filter((r) => r.uid !== uid))}
+        render={(r) => (
+          <>
+            <Textarea
+              value={r.prompt}
+              onChange={(e) => patch(r.uid, { prompt: e.target.value })}
+              placeholder="e.g. What is your open-source license?"
+              rows={2}
+              aria-label="Question prompt"
+            />
+            <label className="flex items-center gap-2 text-sm text-muted">
+              <input type="checkbox" checked={r.required} onChange={(e) => patch(r.uid, { required: e.target.checked })} />
+              Required to submit
+            </label>
+          </>
+        )}
+      />
+      <Button variant="outline" size="sm" className="self-start" onClick={() => setRows((rs) => [...rs, { uid: `new-${Date.now()}`, prompt: "", required: false }])}>
+        <Plus /> Add question
+      </Button>
+      <SaveBar saver={saver} k="questions" dirty={dirty} disabled={rows.some((r) => !r.prompt.trim())} onSave={submit} onReset={() => setRows(questionsOf(event))} label="Save questions" />
     </Section>
   );
 }

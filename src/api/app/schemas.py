@@ -55,6 +55,12 @@ class PrizeIn(BaseModel):
     track_id: uuid.UUID | None = None
 
 
+class QuestionIn(BaseModel):
+    id: uuid.UUID | None = None
+    prompt: str = Field(min_length=1, max_length=5000)
+    required: bool = False
+
+
 class CriterionIn(BaseModel):
     id: uuid.UUID | None = None
     key: str | None = None

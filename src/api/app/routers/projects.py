@@ -243,6 +243,11 @@ def submit_project(project_id: uuid.UUID, actor: ActorDep, db: DB):
     missing = [f for f in ("title", "summary") if not getattr(sub, f).strip()]
     if actor.event.tracks and sub.track_id is None:
         missing.append("track")
+    for q in actor.event.questions:
+        if not q.required:
+            continue
+        if not any(a.question_id == q.id and a.body.strip() for a in sub.answers):
+            missing.append(q.prompt[:80] + ("…" if len(q.prompt) > 80 else ""))
     if missing:
         raise HTTPException(422, f"Fill in {', '.join(missing)} before submitting")
     sub.status = SubmissionStatus.submitted.value
