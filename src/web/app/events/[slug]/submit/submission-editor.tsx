@@ -85,7 +85,7 @@ export function SubmissionEditor({ team }: { team: Team }) {
   const [sub, setSub] = useState<Submission | null>(team.submission);
   const [draft, setDraft] = useState<Draft>(() => toDraft(team.submission));
   const [answers, setAnswers] = useState<Record<string, string>>(() => answersOf(team.submission));
-  const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [save, setSave] = useState<SaveState>(
     team.submission?.updated_at ? { status: "saved", at: new Date(team.submission.updated_at).getTime() } : { status: "idle" },
   );
@@ -154,11 +154,16 @@ export function SubmissionEditor({ team }: { team: Team }) {
   function update<K extends keyof Draft>(key: K, value: Draft[K]) {
     dirty.current = true;
     setDraft((d) => ({ ...d, [key]: value }));
-    setErrors((e) => ({ ...e, [key]: undefined, ...(key === "track_id" ? { track: undefined } : {}) }));
+    setErrors((e) => {
+      const next = { ...e };
+      delete next[key];
+      if (key === "track_id") delete next.track;
+      return next;
+    });
   }
 
   async function submit() {
-    const missing: Partial<Record<FieldKey, string>> = {};
+    const missing: Record<string, string> = {};
     if (!draft.title.trim()) missing.title = "A title is required to submit.";
     if (!draft.summary.trim()) missing.summary = "A one-line summary is required to submit.";
     if (event.tracks.length && !draft.track_id) missing.track_id = "Pick a track to submit.";
@@ -289,7 +294,11 @@ export function SubmissionEditor({ team }: { team: Team }) {
                   onChange={(e) => {
                     dirty.current = true;
                     setAnswers((a) => ({ ...a, [q.id]: e.target.value }));
-                    setErrors((er) => ({ ...er, [`q-${q.id}`]: undefined }));
+                    setErrors((er) => {
+                      const next = { ...er };
+                      delete next[`q-${q.id}`];
+                      return next;
+                    });
                   }}
                   rows={3}
                   maxLength={5000}

@@ -33,7 +33,11 @@ export function RegisterForm({ next }: { next: string | null }) {
         body: json({ ...form, email: form.email.trim(), display_name: form.display_name.trim() }),
       });
       await refresh();
-      toast.success(`Welcome, ${user.display_name}`, "Your account is ready.");
+      const verified = (user as User & { email_verified?: boolean }).email_verified;
+      toast.success(
+        `Welcome, ${user.display_name}`,
+        verified ? "Your account is ready." : "Check your inbox for a confirmation link before voting in verified events.",
+      );
       router.push(next ?? "/");
       router.refresh();
     } catch (err) {
@@ -60,6 +64,7 @@ export function RegisterForm({ next }: { next: string | null }) {
         <Field label="Email" required>
           <Input type="email" autoComplete="email" value={form.email} onChange={set("email")} required />
         </Field>
+        <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" value="" readOnly />
         <Field label="Password" hint="At least 8 characters." error={tooShort ? "At least 8 characters." : (error ?? undefined)} required>
           <Input type="password" autoComplete="new-password" value={form.password} onChange={set("password")} required minLength={8} />
         </Field>

@@ -25,7 +25,7 @@ type Mode = EventDetail["vote_mode"];
 
 const ACCESS: { value: Access; title: string; body: string }[] = [
   { value: "open", title: "Open link", body: "Anyone with the link, one ballot per browser, capped per IP per day. Easiest to join, easiest to game." },
-  { value: "authenticated", title: "Signed-in accounts", body: "One vote per account. Strongest identity, but voters must register first." },
+  { value: "authenticated", title: "Signed-in accounts", body: "One vote per verified account (email link on sign-up). Stronger than open links; still not proof-of-human." },
   { value: "email_gated", title: "Email-gated", body: "One vote per confirmed email; aliases like a+1@ count as a@. A little friction, good protection." },
   { value: "link", title: "Single-use links", body: "You mint links and hand them out in the room. Fast and private; whoever holds a link votes once." },
 ];

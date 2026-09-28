@@ -36,6 +36,7 @@ export type EventDetail = EventSummary & {
   reviews_per_project: number;
   quadratic_budget: number;
   max_team_size: number;
+  require_verified_email: boolean;
   submissions_open: boolean;
   voting_open: boolean;
   results_visible: boolean;
