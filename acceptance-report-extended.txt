@@ -1,28 +1,28 @@
-DOGFOOD 2026 extended acceptance report (tests/acceptance/extended.py)
+﻿DOGFOOD 2026 extended acceptance report (tests/acceptance/extended.py)
 portal: http://localhost:8080
 event: sample-hack-2026
 
-T2  rubric weights are configurable and sum to 1 ............... PASS
-T2  peer's review object is 404, not 200 ....................... PASS
-T2  judges cannot open the organizer dashboard ................. PASS
-T2  live organizer dashboard reports progress .................. PASS
-T2  normalization runs and flags the constant rater ............ PASS
-T3  results hidden while voting is open ........................ PASS
-T3  email-gated ballot never returns the token ................. PASS
-T3  each ballot has its own random order ....................... PASS
-T3  one vote per person; changing a vote moves it .............. PASS
-T3  duplicate submission detected and kept out of the gallery .. PASS
-T3  comments need an account, then appear publicly ............. PASS
-T3  audit trail is readable and its hash chain verifies ........ PASS
-T4  OpenAPI document describes the REST API .................... PASS
-T4  API key authenticates, revoke takes effect ................. PASS
-T4  webhook delivered with a valid HMAC signature .............. PASS
-T4  signed judge record verifies; a tampered copy does not ..... PASS
-T4  embeddable widget serves public gallery data ............... PASS
-T4  bulk export round-trips the fixture exactly ................ PASS
-T4  bulk import creates a new event ............................ PASS
-T4  every CSV export answers with CSV .......................... PASS
-T3  login attempts are rate limited ............................ PASS
+T2  rubric weights are configurable and sum to 1 ................................... PASS
+T2  peer's review object is 404, not 200 ........................................... PASS
+T2  judges cannot open the organizer dashboard ..................................... PASS
+T2  live organizer dashboard reports progress ...................................... PASS
+T2  normalization runs and flags the constant rater ................................ PASS
+T3  results hidden while voting is open ............................................ PASS
+T3  email-gated ballot never returns the token ..................................... PASS
+T3  each ballot has its own random order ........................................... PASS
+T3  ballot enforces vote mode (1p1v moves vote, quadratic enforces credit budget) .. PASS
+T3  duplicate submission detected and kept out of the gallery ...................... PASS
+T3  comments need an account, then appear publicly ................................. PASS
+T3  audit trail is readable and its hash chain verifies ............................ PASS
+T4  OpenAPI document describes the REST API ........................................ PASS
+T4  API key authenticates, revoke takes effect ..................................... PASS
+T4  webhook delivered with a valid HMAC signature .................................. PASS
+T4  signed judge record verifies; a tampered copy does not ......................... PASS
+T4  embeddable widget serves public gallery data ................................... PASS
+T4  bulk export round-trips the fixture exactly .................................... PASS
+T4  bulk import creates a new event ................................................ PASS
+T4  every CSV export answers with CSV .............................................. PASS
+T3  login attempts are rate limited ................................................ PASS
 
 T2: 5/5 pass
 T3: 8/8 pass
