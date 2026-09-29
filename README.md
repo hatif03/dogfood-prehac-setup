@@ -110,8 +110,12 @@ Every seeded account's password is `password`. The sign-in page has one-click bu
 
 ### What is seeded
 
+On first boot the API imports **`spec/fixtures.json`** through the same `import_fixture` path organizers use (`POST /v1/import`). That event is what **`spec/run.py`** exercises. Extra demo data is added **on top**, not instead of the fixture.
+
 - **Sample Hack 2026** (`/events/sample-hack-2026`): the official fixture. 41 projects, 30 judges, 8 tracks, 126 reviews (4 of them on the duplicate, so 122 count). Submissions closed on 2026-03-01, so the portal refuses new ones. The duplicate (`prj_41`) is flagged and hidden. A normalization run exists. As demo configuration, a two-week **email-gated quadratic** community vote is open (25 credits, cost = units²), so results are hidden until an organizer closes voting and publishes.
-- **Playground Hack** (`/events/playground`): synthetic and labelled as such. Submissions are open, so you can run the whole lifecycle: create a team, share the invite link, save a draft, submit, judge, publish.
+- **Playground Hack** (`/events/playground`): synthetic and labelled as such (separate event, no fixture rows). Submissions are open, so you can run the whole lifecycle: create a team, share the invite link, save a draft, submit, judge, publish.
+
+Fixture-only overlays on Sample Hack (demo, not in `fixtures.json`): open **email-gated quadratic** voting window, tagline text, and a normalization run after import. Platform **admin** and **demo session** cookies are also seed extras for local testing.
 
 ## What it does
 
