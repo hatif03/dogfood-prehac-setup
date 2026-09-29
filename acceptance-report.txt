@@ -1,7 +1,7 @@
 ﻿DOGFOOD 2026 acceptance report
 portal: http://localhost:8080
 claimed: T1 T2 T3 T4
-fixtures: C:\Users\mdhat\Desktop\dogfood-prehac-setup\spec\fixtures.json
+fixtures: spec/fixtures.json
 
 T1  gallery is public ................. PASS
 T1  project from fixtures shown ....... PASS

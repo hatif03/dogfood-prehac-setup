@@ -2,11 +2,12 @@
 
 **A self-hosted hackathon submission and judging platform.** Weighted rubrics, a documented and tested correction for lenient and harsh judges, role isolation enforced in the API, community voting that is hard to game, and a hash-chained audit log. It runs from one `docker compose up` with the network off.
 
-Built for [Dogfood 2026](https://dogfoodhack.com/). MIT licensed. The web UI uses a dark-default, [Hackathon Raptors](https://www.raptors.dev/)-inspired editorial theme ([context/design-tokens-raptors.md](context/design-tokens-raptors.md)).
+Built for [Dogfood 2026](https://dogfoodhack.com/). MIT licensed. Source: [github.com/hatif03/dogfood-submission](https://github.com/hatif03/dogfood-submission). The web UI uses a dark-default, [Hackathon Raptors](https://www.raptors.dev/)-inspired editorial theme ([context/design-tokens-raptors.md](context/design-tokens-raptors.md)).
 
 | | |
 | --- | --- |
 | Tiers claimed | T1, T2, T3, T4 ([.dogfood.toml](.dogfood.toml)) |
+| Demo video (5 min) | [YouTube](https://youtu.be/YO3t1bHxJss?si=f2knnEniff1YKi9K) — shot list in [docs/demo-script.md](docs/demo-script.md) |
 | Official checker | [acceptance-report.txt](acceptance-report.txt): 7/7 checks pass, T1 and T2 verified. run.py has no T3/T4 checks, so it prints "claimed but not verified: T3 T4" for every team that claims them. |
 | Our T2–T4 checks | [acceptance-report-extended.txt](acceptance-report-extended.txt): 21/21, from [tests/acceptance/extended.py](tests/acceptance/extended.py) (stdlib only, same style as run.py). Both reports come from a fresh `docker compose up`. |
 | Seed data | the official [spec/fixtures.json](spec/fixtures.json), loaded through the same importer organizers use |
@@ -30,6 +31,8 @@ Wait until all services are healthy (or use `docker compose up --build -d --wait
 | API directly (curl) | http://localhost:8000 |
 
 ### Demo and recording
+
+**Recorded demo:** https://youtu.be/YO3t1bHxJss?si=f2knnEniff1YKi9K
 
 Full shot list: [docs/demo-script.md](docs/demo-script.md). Pre-freeze gate:
 
@@ -137,7 +140,7 @@ Use this when the portal faces real participants (not the hackathon demo seed).
 7. Export: Organize → Integrations → `export.json` (lossless round-trip per tests).
 8. Before submission deadline, add `Reviewed: <name> <date>` to [JUDGING.md](JUDGING.md), [THREAT-MODEL.md](THREAT-MODEL.md), and regenerated proof docs if you changed scoring code.
 
-Demo video: follow [docs/demo-script.md](docs/demo-script.md) when you record the five-minute lifecycle clip.
+Demo video: [YouTube](https://youtu.be/YO3t1bHxJss?si=f2knnEniff1YKi9K) (recorded from [docs/demo-script.md](docs/demo-script.md)).
 
 ## Honest limitations
 

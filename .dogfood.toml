@@ -2,6 +2,10 @@
 # Check with:  python3 spec/run.py .dogfood.toml > acceptance-report.txt
 # Code lives in src/api (FastAPI) and src/web (Next.js); the web origin proxies /v1/* to the API.
 
+[submission]
+repository = "https://github.com/hatif03/dogfood-submission"
+demo_video = "https://youtu.be/YO3t1bHxJss?si=f2knnEniff1YKi9K"
+
 [portal]
 base_url = "http://localhost:8080"
 

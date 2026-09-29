@@ -100,7 +100,7 @@ Status: **Done** means implemented, reachable from the UI where there is a UI, a
 | No hosted dependencies | compose runs Postgres, Redis, MinIO, Mailpit locally; no product code calls an external API | Done |
 | Role checks in the backend, not only in the UI | `rbac.py` | Done |
 | Usable interface | `src/web`: Radix Themes, role-aware home, organizer lifecycle rail; axe-core has no serious or critical violations on 15 screens in light and dark; no horizontal scroll at 390 px | Done |
-| 5-minute demo video | — | **Not done: recorded by the team** |
+| 5-minute demo video | [YouTube](https://youtu.be/YO3t1bHxJss?si=f2knnEniff1YKi9K); linked from [README.md](../README.md) | Done |
 
 ## Bonus challenges
 

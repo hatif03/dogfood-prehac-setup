@@ -39,14 +39,14 @@ If it does not come up on a laptop with the network off, they cannot adopt it.
 
 ## You'll submit (checklist)
 
-- [ ] Public GitHub repo, OSI-approved license (MIT)
+- [x] Public GitHub repo ([hatif03/dogfood-submission](https://github.com/hatif03/dogfood-submission)), OSI-approved license (MIT)
 - [ ] `docker compose up` to a seeded working portal
 - [ ] `acceptance-report.txt`
 - [ ] `README.md`
 - [ ] `ARCHITECTURE.md`
 - [ ] `DATA-MODEL.md`
 - [ ] `JUDGING.md`
-- [ ] 5-minute demo video
+- [x] 5-minute demo video — https://youtu.be/YO3t1bHxJss?si=f2knnEniff1YKi9K
 - [ ] `.dogfood.toml`
 
 `JUDGING.md` feeds Judging Integrity (25%). "We averaged the scores" is a weak answer. Address the judge who marks everything a 3.

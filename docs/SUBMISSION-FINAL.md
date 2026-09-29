@@ -4,7 +4,7 @@ Reviewed: hatif03 2026-09-28
 
 Before you tag the repo for Dogfood judges:
 
-1. Record the **5-minute demo** using [demo-script.md](demo-script.md). *(video pending)*
+1. **5-minute demo:** https://youtu.be/YO3t1bHxJss?si=f2knnEniff1YKi9K (recorded from [demo-script.md](demo-script.md)).
 2. Done: `Reviewed: hatif03 2026-09-28` on [JUDGING.md](../JUDGING.md), [THREAT-MODEL.md](../THREAT-MODEL.md), and [context/kickoff-diff.md](../context/kickoff-diff.md).
 3. Run `.\scripts\verify-submission.ps1` with `docker compose up` on `:8080`.
 4. Commit `acceptance-report.txt` and `acceptance-report-extended.txt` if timestamps should match your freeze.

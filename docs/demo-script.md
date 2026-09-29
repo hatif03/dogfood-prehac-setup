@@ -226,8 +226,8 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ## After recording
 
-1. Upload video (unlisted YouTube or file host linked from README / submission form).
-2. Update `docs/SUBMISSION-FINAL.md` — mark video done.
+1. Published: https://youtu.be/YO3t1bHxJss?si=f2knnEniff1YKi9K (linked from README and `.dogfood.toml`).
+2. `docs/SUBMISSION-FINAL.md` updated.
 3. Commit fresh `acceptance-report*.txt` if you re-ran verify on recording day.
 
-Reviewed: hatif03 2026-09-28 (script; publish video when recorded)
+Reviewed: hatif03 2026-09-29 (script; video published)
